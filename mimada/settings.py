@@ -37,6 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps del proyecto Mimada
+    'usuarios',
+    'catalogo',
+    'pedidos',
 ]
 
 MIDDLEWARE = [
@@ -72,10 +76,15 @@ WSGI_APPLICATION = 'mimada.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mimada_db',
+        'USER': 'root',
+        'PASSWORD': 'mimada2026',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
