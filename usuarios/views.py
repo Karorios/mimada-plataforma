@@ -31,3 +31,15 @@ def registro_view(request):
 def logout_view(request):
     logout(request)
     return redirect('usuarios:login')
+
+def login_admin_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None and user.is_staff:
+            login(request, user)
+            return redirect('/admin/')
+        else:
+            messages.error(request, 'Credenciales incorrectas o no tienes permisos de administrador')
+    return render(request, 'usuarios/login_admin.html')

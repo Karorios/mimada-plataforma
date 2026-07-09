@@ -1,11 +1,10 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mimada - Iniciar Sesión</title>
+    <title>Mimada - Administrador</title>
+    {% load static %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -35,8 +34,6 @@
             text-align: center;
             margin-bottom: 1.5rem;
         }
-        {% load static %}
-
         .brand-name {
             font-size: 22px;
             font-weight: 600;
@@ -80,48 +77,9 @@
             top: 50%;
             transform: translateY(-50%);
             color: #e91e8c;
-            font-size: 16px;
-        }
-        .forgot {
-            text-align: right;
-            margin-top: -6px;
-            margin-bottom: 1.2rem;
-        }
-        .forgot a {
-            font-size: 12px;
-            color: #e91e8c;
-            text-decoration: none;
-        }
-        .btn-login {
-            width: 100%;
-            background: #e91e8c;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
             cursor: pointer;
         }
-        .btn-login:hover { background: #c2185b; }
-        .divider {
-            text-align: center;
-            font-size: 12px;
-            color: #bbb;
-            margin: 1.2rem 0;
-        }
-        .register-link {
-            text-align: center;
-            font-size: 13px;
-            color: #888;
-        }
-        .register-link a {
-            color: #e91e8c;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .messages {
+        .error-msg {
             background: #fce4ec;
             border: 1px solid #f48fb1;
             border-radius: 8px;
@@ -129,6 +87,28 @@
             font-size: 13px;
             color: #c2185b;
             margin-bottom: 1rem;
+        }
+        .btn-login {
+            width: 100%;
+            background: #c2185b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-login:hover { background: #880e4f; }
+        .back-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 13px;
+        }
+        .back-link a {
+            color: #e91e8c;
+            text-decoration: none;
+            font-weight: 600;
         }
         .footer {
             font-size: 11px;
@@ -142,57 +122,54 @@
     <div class="card">
         <div class="brand">
             <img src="{% static 'img/logo.png' %}"
-            alt="Mimada"
-            style="width: 120px; margin: 0 auto 0.5rem; display: block;" />
-            <p class="brand-sub">Detalles, accesorios y más</p>
+                 alt="Mimada"
+                 style="width: 80px; margin: 0 auto 0.5rem; display: block;" />
+            <p class="brand-name">Mimada</p>
+            <p class="brand-sub">Acceso Administrador</p>
         </div>
 
         {% if messages %}
             {% for message in messages %}
-                <div class="messages">{{ message }}</div>
+                <div class="error-msg">{{ message }}</div>
             {% endfor %}
         {% endif %}
 
         <form method="post">
             {% csrf_token %}
 
-            <label class="field-label">Correo electrónico</label>
+            <label class="field-label">Usuario</label>
             <div class="field-wrap">
-                <input type="email" name="username"
-                       placeholder="nombre@ejemplo.com" required />
-                <span class="field-icon">✉</span>
+                <input type="text" name="username"
+                       placeholder="Usuario administrador" required />
+                <span class="field-icon">👤</span>
             </div>
 
             <label class="field-label">Contraseña</label>
             <div class="field-wrap">
-                <input type="password" name="password" id="password"
-                       placeholder="••••••••" required />
+                <input type="password" name="password"
+                       id="password" placeholder="••••••••" required />
                 <span class="field-icon" onclick="togglePassword()"
-                      style="cursor:pointer;" id="eye-icon">👁</span>
-            </div>
-            <div class="forgot">
-                <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+                      id="eye-icon">👁</span>
             </div>
 
             <button type="submit" class="btn-login">
-                INICIAR SESIÓN →
+                INGRESAR COMO ADMINISTRADOR →
             </button>
         </form>
 
-    <div class="divider">¿No tienes una cuenta?</div>
-            <div class="register-link">
-                <a href="{% url 'usuarios:registro' %}">Crear Cuenta</a>
-            </div>
-
-            <div class="divider">¿Eres administrador?</div>
-            <div class="register-link">
-                <a href="{% url 'usuarios:login_admin' %}">Ingresar como Mimada</a>
-            </div>
+        <div class="back-link">
+            <a href="{% url 'usuarios:login' %}">← Volver al inicio</a>
         </div>
+    </div>
+
     <div class="footer">
-        © 2026 Mimada. Artesanía Colombiana.<br>
-        📱 Contacto: 323 888 3587<br>
-        📷 Instagram: @mimada.detalles
+        © 2026 Mimada. Artesanía Colombiana. <br>
+        📞 323 888 3587 &nbsp;|&nbsp;
+        📸 <a href="https://www.instagram.com/mimada.detalles"
+               target="_blank"
+               style="color: #e91e8c; text-decoration: none;">
+            @mimada.detalles
+        </a>
     </div>
 </div>
 <script>
