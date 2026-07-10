@@ -7,6 +7,10 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),
     path('catalogo/', include('catalogo.urls')),
     path('pedidos/', include('pedidos.urls')),
+    path('finanzas/', include('finanzas.urls')),
+    path('inventario/', include('inventario.urls')),
+    path('panelprincipaladmin/', include('panelprincipaladmin.urls')),
+    path('pedidosadmin/', include('pedidosadmin.urls')),
     path('password-reset/',
          auth_views.PasswordResetView.as_view(
              template_name='usuarios/password_reset.html'

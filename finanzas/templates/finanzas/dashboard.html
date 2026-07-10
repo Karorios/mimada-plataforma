@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimada Admin - Finanzas</title>
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdf0f5;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .sidebar-brand {
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+        }
+        .sidebar-brand h1 {
+            font-size: 18px;
+            color: #c2185b;
+            font-weight: 700;
+        }
+        .sidebar-brand p {
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .nav-link:hover {
+            background: #fdf0f5;
+        }
+        .nav-link.active {
+            background: #fce4ec;
+            color: #c2185b;
+            font-weight: 600;
+            border: 1px solid #f48fb1;
+        }
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar-footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-top: 1px solid #f5d5e3;
+            font-size: 13px;
+        }
+        .avatar-mini {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f48fb1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .user-info-mini p:first-child { font-weight: 600; color: #333; }
+        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            padding: 2rem;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .main-header h2 {
+            font-size: 26px;
+            color: #333;
+        }
+        .main-header p {
+            color: #999;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .btn-primary {
+            background: #c2185b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #880e4f; }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f5d5e3;
+            padding: 1rem 1.2rem;
+            flex: 1;
+            min-width: 180px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        .stat-value.pink { color: #c2185b; }
+        .stat-value.gold { color: #c98a00; }
+
+        .search-box {
+            border: 1px solid #f5d5e3;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 1.5rem;
+            outline: none;
+        }
+
+        /* Client cards */
+        .clientes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+        .cliente-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #f5d5e3;
+            padding: 1.2rem;
+        }
+        .cliente-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.8rem;
+        }
+        .cliente-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8bbd0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #c2185b;
+        }
+        .cliente-nombre { font-weight: 700; color: #333; font-size: 15px; }
+        .cliente-detalle { font-size: 12px; color: #999; }
+        .badge {
+            margin-left: auto;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        .badge.VENCIDO { background: #ffebee; color: #c62828; }
+        .badge.PROXIMO { background: #fff3e0; color: #e65100; }
+        .badge.AL_DIA { background: #e8f5e9; color: #2e7d32; }
+
+        .cliente-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        .cliente-row .saldo-label { font-weight: 600; color: #333; }
+        .cliente-row .saldo-value { font-weight: 700; color: #c2185b; }
+        .cliente-fecha {
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+            border-top: 1px solid #f5f5f5;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1>Mimada Admin</h1>
+            <p>GESTIÓN FLORAL</p>
+        </div>
+
+        <nav>
+            <a href="{% url 'panelprincipaladmin:dashboard' %}" class="nav-link">
+                <span class="nav-icon">🏠</span> Inicio
+            </a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link">
+                <span class="nav-icon">📦</span> Inventario
+            </a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
+                <span class="nav-icon">🧾</span> Pedidos
+            </a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link active">
+                <span class="nav-icon">💰</span> Finanzas
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
+            <div class="user-info-mini">
+                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+                <p>Admin Principal</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="main-header">
+            <div>
+                <h2>Control de Deudas por Cliente</h2>
+                <p>Seguimiento detallado de saldos y abonos de pedidos artesanales.</p>
+            </div>
+            <button class="btn-primary">+ Registrar Abono</button>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total por Cobrar</div>
+                <div class="stat-value pink">${{ total_por_cobrar|floatformat:0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Clientes con Deuda</div>
+                <div class="stat-value">{{ clientes_con_deuda }} Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pagos del Mes</div>
+                <div class="stat-value gold">${{ pagos_del_mes|floatformat:0 }}</div>
+            </div>
+        </div>
+
+        <input type="text" class="search-box" placeholder="🔍 Buscar cliente...">
+
+        <div class="clientes-grid">
+            {% for cliente in clientes %}
+            <div class="cliente-card">
+                <div class="cliente-top">
+                    <div class="cliente-avatar">
+                        {% if cliente.iniciales %}{{ cliente.iniciales }}{% else %}{{ cliente.nombre|slice:":1" }}{% endif %}
+                    </div>
+                    <div>
+                        <div class="cliente-nombre">{{ cliente.nombre }}</div>
+                        <div class="cliente-detalle">{{ cliente.detalle }}</div>
+                    </div>
+                    <span class="badge {{ cliente.estado }}">
+                        {% if cliente.estado == 'VENCIDO' %}VENCIDO
+                        {% elif cliente.estado == 'PROXIMO' %}PRÓXIMO
+                        {% else %}AL DÍA{% endif %}
+                    </span>
+                </div>
+
+                <div class="cliente-row">
+                    <span>Valor Total</span>
+                    <span>${{ cliente.valor_total|floatformat:0 }}</span>
+                </div>
+                <div class="cliente-row">
+                    <span>Abonado</span>
+                    <span>${{ cliente.abonado|floatformat:0 }}</span>
+                </div>
+                <div class="cliente-row">
+                    <span class="saldo-label">SALDO PENDIENTE</span>
+                    <span class="saldo-value">${{ cliente.saldo|floatformat:0 }}</span>
+                </div>
+
+                <div class="cliente-fecha">📅 {{ cliente.fecha_info }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+</body>
+</html>
