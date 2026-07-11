@@ -202,8 +202,10 @@
                         {% endif %}
                     </td>
                     <td class="item-nombre">
+                        {% if item.color %}
+                        <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:{{ item.color }}; border:1px solid #ddd; vertical-align:middle; margin-right:6px;"></span>
+                        {% endif %}
                         {{ item.nombre }}
-                        {% if item.color %}<span style="color:#999; font-weight:400;">({{ item.color }})</span>{% endif %}
                     </td>
                     <td>{{ item.categoria.nombre }}</td>
                     <td>{{ item.stock_actual }} {{ item.get_unidad_medida_display }}</td>

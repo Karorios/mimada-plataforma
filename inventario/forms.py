@@ -13,7 +13,7 @@ class ItemInventarioForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-input'}),
             'nombre': forms.TextInput(attrs={'class': 'form-input'}),
             'unidad_medida': forms.Select(attrs={'class': 'form-input'}),
-            'color': forms.TextInput(attrs={'class': 'form-input'}),
+            'color': forms.TextInput(attrs={'type': 'color', 'class': 'form-input', 'style': 'height:42px; padding:4px; cursor:pointer;'}),
             'precio': forms.NumberInput(attrs={'class': 'form-input'}),
             'stock_actual': forms.NumberInput(attrs={'class': 'form-input'}),
             'stock_minimo': forms.NumberInput(attrs={'class': 'form-input'}),
