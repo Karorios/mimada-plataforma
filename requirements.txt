@@ -4,3 +4,6 @@ mysqlclient==2.2.8
 pillow==12.2.0
 sqlparse==0.5.5
 tzdata==2026.2
+django-cloudinary-storage==0.3.0
+cloudinary==1.45.0
+

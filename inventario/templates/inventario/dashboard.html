@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimada Admin - Inventario</title>
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdf0f5;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
+        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
+        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 8px; color: #666;
+            text-decoration: none; font-size: 14px; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: #fdf0f5; }
+        .nav-link.active {
+            background: #fce4ec; color: #c2185b; font-weight: 600;
+            border: 1px solid #f48fb1;
+        }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto; display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
+        }
+        .avatar-mini {
+            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 13px;
+        }
+        .user-info-mini p:first-child { font-weight: 600; color: #333; }
+        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+
+        .main { flex: 1; padding: 2rem; }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .main-header h2 { font-size: 26px; color: #333; }
+        .main-header p { color: #999; font-size: 14px; margin-top: 4px; }
+        .btn-primary {
+            background: #c2185b; color: white; border: none; border-radius: 20px;
+            padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+            text-decoration: none; display: inline-block;
+        }
+        .btn-primary:hover { background: #880e4f; }
+
+        .toolbar {
+            display: flex; gap: 10px; margin-bottom: 1.5rem; align-items: center;
+        }
+        .search-box {
+            border: 1px solid #f5d5e3; border-radius: 20px; padding: 10px 16px;
+            font-size: 14px; flex: 1; max-width: 320px; outline: none;
+        }
+        .filter-select {
+            border: 1px solid #f5d5e3; border-radius: 20px; padding: 10px 16px;
+            font-size: 13px; outline: none; background: white; color: #666;
+        }
+
+        .messages { margin-bottom: 1rem; }
+        .message-success {
+            background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+            border-radius: 8px; padding: 10px 14px; font-size: 13px;
+        }
+
+        table {
+            width: 100%; border-collapse: collapse; background: white;
+            border-radius: 14px; overflow: hidden; border: 1px solid #f5d5e3;
+        }
+        thead { background: #fdf5f9; }
+        th {
+            text-align: left; padding: 12px 16px; font-size: 11px;
+            color: #999; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        td { padding: 14px 16px; font-size: 14px; color: #444; border-top: 1px solid #f5f5f5; }
+        .item-nombre { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #333; }
+        .item-img {
+            width: 36px; height: 36px; border-radius: 8px; object-fit: cover;
+            background: #fce4ec;
+        }
+        .item-img-placeholder {
+            width: 36px; height: 36px; border-radius: 8px; background: #fce4ec;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .badge {
+            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+        }
+        .badge.AGOTADO { background: #ffebee; color: #c62828; }
+        .badge.STOCK_BAJO { background: #fff3e0; color: #e65100; }
+        .badge.DISPONIBLE { background: #e8f5e9; color: #2e7d32; }
+        .acciones a { margin-right: 10px; text-decoration: none; font-size: 13px; }
+        .acciones .editar { color: #1976d2; }
+        .acciones .eliminar { color: #c62828; }
+
+        .resumen-valor {
+            margin-top: 1.5rem; background: white; border-radius: 12px;
+            border: 1px solid #f5d5e3; padding: 1rem 1.2rem; max-width: 280px;
+        }
+        .resumen-valor .stat-label { font-size: 11px; color: #999; text-transform: uppercase; }
+        .resumen-valor .stat-value { font-size: 22px; font-weight: 700; color: #c2185b; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1>Mimada Admin</h1>
+            <p>GESTIÓN FLORAL</p>
+        </div>
+        <nav>
+            <a href="{% url 'panelprincipaladmin:dashboard' %}" class="nav-link">
+                <span class="nav-icon">🏠</span> Inicio
+            </a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link active">
+                <span class="nav-icon">📦</span> Inventario
+            </a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
+                <span class="nav-icon">🧾</span> Pedidos
+            </a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link">
+                <span class="nav-icon">💰</span> Finanzas
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
+            <div class="user-info-mini">
+                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+                <p>Admin Principal</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="main-header">
+            <div>
+                <h2>Gestión de Inventario</h2>
+                <p>Controla tus existencias de flores y regalos artesanales.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a href="{% url 'inventario:item_crear' %}" class="btn-primary">+ Agregar Producto</a>
+                <a href="{% url 'inventario:categoria_crear' %}" class="btn-primary" style="background:white; color:#c2185b; border:1px solid #c2185b; margin-left:8px;">+ Nueva Categoría</a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message-success">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="get" class="toolbar">
+            <input type="text" name="q" class="search-box" placeholder="🔍 Buscar por nombre o categoría..." value="{{ query }}">
+            <select name="categoria" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todas las categorías</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.id }}" {% if request.GET.categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        {% if item.imagen %}
+                        <img src="{{ item.imagen.url }}" class="item-img" alt="{{ item.nombre }}">
+                        {% else %}
+                        <div class="item-img-placeholder">🌸</div>
+                        {% endif %}
+                    </td>
+                    <td class="item-nombre">
+                        {{ item.nombre }}
+                        {% if item.color %}<span style="color:#999; font-weight:400;">({{ item.color }})</span>{% endif %}
+                    </td>
+                    <td>{{ item.categoria.nombre }}</td>
+                    <td>{{ item.stock_actual }} {{ item.get_unidad_medida_display }}</td>
+                    <td>{{ item.stock_minimo }}</td>
+                    <td><span class="badge {{ item.estado }}">{{ item.estado_display }}</span></td>
+                    <td class="acciones">
+                        <a href="{% url 'inventario:item_editar' item.pk %}" class="editar">✏️ Editar</a>
+                        <a href="{% url 'inventario:item_eliminar' item.pk %}" class="eliminar">🗑️ Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; color:#999; padding:2rem;">No hay productos en el inventario todavía.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 2rem;">
+            <h3 style="font-size: 16px; color: #333; margin-bottom: 12px;">Categorías</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                {% for cat in categorias %}
+                <div style="background:white; border:1px solid #f5d5e3; border-radius:20px; padding:6px 6px 6px 14px; display:flex; align-items:center; gap:8px; font-size:13px;">
+                    <span>{{ cat.nombre }} <span style="color:#999; font-size:11px;">({{ cat.get_tipo_display }})</span></span>
+                    <a href="{% url 'inventario:categoria_editar' cat.pk %}" style="color:#1976d2; text-decoration:none;">✏️</a>
+                    <a href="{% url 'inventario:categoria_eliminar' cat.pk %}" style="color:#c62828; text-decoration:none;">🗑️</a>
+                </div>
+                {% empty %}
+                <p style="color:#999; font-size:13px;">No hay categorías creadas.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="resumen-valor">
+            <div class="stat-label">Valor Total en Inventario</div>
+            <div class="stat-value">${{ total_valor|floatformat:0 }}</div>
+        </div>
+    </main>
+
+</body>
+</html>
