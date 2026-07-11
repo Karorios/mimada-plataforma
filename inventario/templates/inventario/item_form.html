@@ -50,14 +50,34 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
-            <div class="field-wrap">
-                <label class="field-label">{{ field.label }}</label>
-                {{ field }}
-                {{ field.errors }}
-            </div>
+                {% if field.name == 'color' %}
+                    <div class="field-wrap" id="wrapper-color" style="display:none;">
+                        <label class="field-label">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% else %}
+                    <div class="field-wrap">
+                        <label class="field-label">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
             {% endfor %}
             <button type="submit" class="btn-primary">Guardar</button>
         </form>
+
+        <script>
+            const checkboxColor = document.getElementById('id_tiene_color');
+            const wrapperColor = document.getElementById('wrapper-color');
+
+            function toggleColor() {
+                wrapperColor.style.display = checkboxColor.checked ? 'block' : 'none';
+            }
+
+            checkboxColor.addEventListener('change', toggleColor);
+            toggleColor(); // Estado inicial al cargar la página
+        </script>
         <div class="back-link">
             <a href="{% url 'inventario:dashboard' %}">← Volver al inventario</a>
         </div>
