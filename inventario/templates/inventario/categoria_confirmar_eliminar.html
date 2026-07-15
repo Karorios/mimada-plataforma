@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Categoría</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; padding: 1rem;
+        }
+        .card {
+            background: white; border-radius: 16px; border: 1px solid #f0c0d4;
+            padding: 2rem; width: 100%; max-width: 380px; text-align: center;
+        }
+        h2 { color: #c2185b; margin-bottom: 0.8rem; font-size: 18px; }
+        p { color: #666; font-size: 14px; margin-bottom: 1.5rem; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn-danger, .btn-cancel {
+            flex: 1; border: none; border-radius: 8px; padding: 12px;
+            font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none;
+            display: inline-block;
+        }
+        .btn-danger { background: #c62828; color: white; }
+        .btn-cancel { background: #f0f0f0; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>¿Eliminar categoría "{{ categoria.nombre }}"?</h2>
+        <p>Esta acción no se puede deshacer.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="btn-row">
+                <a href="{% url 'inventario:dashboard' %}" class="btn-cancel">Cancelar</a>
+                <button type="submit" class="btn-danger">Sí, eliminar</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

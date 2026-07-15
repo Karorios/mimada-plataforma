@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mimada Admin - {{ titulo }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdf0f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #f0c0d4;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+        }
+        h2 { color: #c2185b; margin-bottom: 1.5rem; font-size: 20px; }
+        .field-label {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            color: #888; text-transform: uppercase; margin-bottom: 6px; display: block;
+        }
+        .field-wrap { margin-bottom: 1rem; }
+        .form-input {
+            width: 100%; border: 1px solid #f0c0d4; border-radius: 8px;
+            padding: 10px 12px; font-size: 14px; background: #fff9fb; outline: none; color: #333;
+        }
+        .form-input:focus { border-color: #e91e8c; background: white; }
+        .btn-primary {
+            width: 100%; background: #c2185b; color: white; border: none;
+            border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600;
+            cursor: pointer; margin-top: 0.5rem;
+        }
+        .btn-primary:hover { background: #880e4f; }
+        .back-link { text-align: center; margin-top: 1.2rem; font-size: 13px; }
+        .back-link a { color: #e91e8c; text-decoration: none; font-weight: 600; }
+        .errorlist { color: #c62828; font-size: 12px; list-style: none; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>{{ titulo }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.name == 'color' %}
+                    <div class="field-wrap" id="wrapper-color" style="display:none;">
+                        <label class="field-label">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% else %}
+                    <div class="field-wrap">
+                        <label class="field-label">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <button type="submit" class="btn-primary">Guardar</button>
+        </form>
+
+        <script>
+            const checkboxColor = document.getElementById('id_tiene_color');
+            const wrapperColor = document.getElementById('wrapper-color');
+
+            function toggleColor() {
+                wrapperColor.style.display = checkboxColor.checked ? 'block' : 'none';
+            }
+
+            checkboxColor.addEventListener('change', toggleColor);
+            toggleColor(); // Estado inicial al cargar la página
+        </script>
+        <div class="back-link">
+            <a href="{% url 'inventario:dashboard' %}">← Volver al inventario</a>
+        </div>
+    </div>
+</body>
+</html>

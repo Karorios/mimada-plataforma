@@ -39,7 +39,7 @@ def login_admin_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_staff:
             login(request, user)
-            return redirect('/admin/')
+            return redirect('finanzas:dashboard')
         else:
             messages.error(request, 'Credenciales incorrectas o no tienes permisos de administrador')
     return render(request, 'usuarios/login_admin.html')
