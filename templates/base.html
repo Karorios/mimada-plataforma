@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mimada{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdf0f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        a { text-decoration: none; }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #f0c0d4;
+            padding: 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .navbar .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar .logo-wrap img {
+            width: 38px;
+        }
+        .navbar .brand-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #c2185b;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: #888;
+            padding: 6px 4px;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #e91e8c;
+            border-bottom: 2px solid #e91e8c;
+        }
+
+        /* MAIN CONTENT */
+        main {
+            flex: 1;
+        }
+
+        /* MESSAGES */
+        .messages {
+            max-width: 900px;
+            margin: 1rem auto 0;
+            padding: 0 1rem;
+        }
+        .messages .msg {
+            background: #fce4ec;
+            border: 1px solid #f48fb1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #c2185b;
+            margin-bottom: 0.5rem;
+        }
+
+        /* FOOTER */
+        footer {
+            background: white;
+            border-top: 1px solid #f0c0d4;
+            text-align: center;
+            padding: 1.2rem 1rem;
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 2rem;
+        }
+
+        {% block extra_style %}{% endblock %}
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo-wrap">
+        <img src="{% static 'img/logo.png' %}" alt="Mimada">
+        <span class="brand-name">Mimada</span>
+    </div>
+    <div class="nav-links">
+        <a href="{% url 'catalogo:inicio' %}">Home</a>
+        <a href="#">Catálogo</a>
+        <a href="#">Crea tu detalle</a>
+        <a href="#">Mis pedidos</a>
+        <a href="{% url 'usuarios:login' %}">Login</a>
+    </div>
+</nav>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+        <div class="msg">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    © 2026 Mimada. Artesanía Colombiana.<br>
+    📱 Contacto: 323 888 3587 &nbsp;|&nbsp; 📷 Instagram: @mimada.detalles
+</footer>
+
+</body>
+</html>

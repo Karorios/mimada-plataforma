@@ -1,0 +1,30 @@
+[
+  {
+    "model": "inventario.categoriainventario",
+    "pk": 100,
+    "fields": {
+      "nombre": "Cintas",
+      "tipo": "INSUMO"
+    }
+  },
+
+  {"model": "inventario.iteminventario", "pk": 1000, "fields": {"categoria": 100, "nombre": "cinta roja", "unidad_medida": "METRO", "color": "#e92626", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1001, "fields": {"categoria": 100, "nombre": "cinta rosada", "unidad_medida": "METRO", "color": "#e91e8c", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1002, "fields": {"categoria": 100, "nombre": "cinta fucsia", "unidad_medida": "METRO", "color": "#e0277d", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1003, "fields": {"categoria": 100, "nombre": "cinta blanca", "unidad_medida": "METRO", "color": "#ffffff", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1004, "fields": {"categoria": 100, "nombre": "cinta negra", "unidad_medida": "METRO", "color": "#000000", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1005, "fields": {"categoria": 100, "nombre": "cinta dorada", "unidad_medida": "METRO", "color": "#d4af37", "imagen": null, "precio": "1800.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1006, "fields": {"categoria": 100, "nombre": "cinta plateada", "unidad_medida": "METRO", "color": "#c0c0c0", "imagen": null, "precio": "1800.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1007, "fields": {"categoria": 100, "nombre": "cinta morada", "unidad_medida": "METRO", "color": "#8e44ad", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1008, "fields": {"categoria": 100, "nombre": "cinta azul", "unidad_medida": "METRO", "color": "#2980b9", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1009, "fields": {"categoria": 100, "nombre": "cinta verde", "unidad_medida": "METRO", "color": "#27ae60", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1010, "fields": {"categoria": 100, "nombre": "cinta amarilla", "unidad_medida": "METRO", "color": "#f1c40f", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1011, "fields": {"categoria": 100, "nombre": "cinta naranja", "unidad_medida": "METRO", "color": "#e67e22", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1012, "fields": {"categoria": 100, "nombre": "cinta gris", "unidad_medida": "METRO", "color": "#95a5a6", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1013, "fields": {"categoria": 100, "nombre": "cinta café", "unidad_medida": "METRO", "color": "#6e4a2e", "imagen": null, "precio": "1500.00", "stock_actual": 20, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+
+  {"model": "inventario.iteminventario", "pk": 1020, "fields": {"categoria": 5, "nombre": "dulces surtidos", "unidad_medida": "UNIDAD", "color": null, "imagen": null, "precio": "500.00", "stock_actual": 50, "stock_minimo": 5, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1021, "fields": {"categoria": 5, "nombre": "espejo", "unidad_medida": "UNIDAD", "color": null, "imagen": null, "precio": "3000.00", "stock_actual": 10, "stock_minimo": 2, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1022, "fields": {"categoria": 5, "nombre": "mariposas decorativas", "unidad_medida": "UNIDAD", "color": null, "imagen": null, "precio": "800.00", "stock_actual": 30, "stock_minimo": 3, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}},
+  {"model": "inventario.iteminventario", "pk": 1023, "fields": {"categoria": 5, "nombre": "corona", "unidad_medida": "UNIDAD", "color": null, "imagen": null, "precio": "5000.00", "stock_actual": 8, "stock_minimo": 1, "fecha_creacion": "2026-07-29T00:00:00Z", "fecha_actualizacion": "2026-07-29T00:00:00Z"}}
+]
