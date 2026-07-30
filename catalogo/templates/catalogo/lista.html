@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mimada - Catálogo{% endblock %}
+
+{% block content %}
+
+<section class="cat-header">
+    <h1>Catálogo</h1>
+</section>
+
+<section class="filtros">
+    <button class="chip active" data-filtro="todo">Todo</button>
+    {% for categoria in categorias %}
+        <button class="chip" data-filtro="{{ categoria.nombre }}">{{ categoria.get_nombre_display }}</button>
+    {% endfor %}
+</section>
+
+<section class="galeria">
+    {% if productos %}
+    <div class="grid-productos">
+        {% for producto in productos %}
+        <div class="tarjeta-producto" data-categoria="{{ producto.categoria.nombre }}">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+                <div class="sin-imagen">🌸</div>
+            {% endif %}
+            <div class="info-producto">
+                {% if producto.disponible %}
+                    <span class="badge-producto">Artesanal</span>
+                {% else %}
+                    <span class="badge-producto badge-agotado">Agotado</span>
+                {% endif %}
+                <h3>{{ producto.nombre }}</h3>
+                {% if producto.descripcion %}
+                    <p class="descripcion">{{ producto.descripcion }}</p>
+                {% endif %}
+                <div class="fila-precio">
+                    <p class="precio">${{ producto.precio }}</p>
+                    {% if producto.disponible %}
+                        <a href="#" class="btn-comprar">Comprar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="vacio">Aún no hay productos cargados.</p>
+    {% endif %}
+</section>
+
+{% endblock %}
+
+{% block extra_style %}
+.badge-producto {
+    display: inline-block;
+    background: #fce4ec;
+    color: #c2185b;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+}
+.badge-agotado {
+    background: #f0f0f0;
+    color: #999;
+}
+.fila-precio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.btn-comprar {
+    background: #e91e8c;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+}
+.cat-header {
+    text-align: center;
+    padding: 2rem 1rem 0.5rem;
+}
+.cat-header h1 {
+    color: #c2185b;
+    font-size: 1.8rem;
+}
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1rem 1.5rem 0.5rem;
+}
+.chip {
+    background: white;
+    border: 1px solid #f0c0d4;
+    color: #888;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.chip:hover {
+    border-color: #e91e8c;
+    color: #e91e8c;
+}
+.chip.active {
+    background: #e91e8c;
+    color: white;
+    border-color: #e91e8c;
+}
+.galeria {
+    max-width: 1100px;
+    margin: 1.5rem auto 2.5rem;
+    padding: 0 1.5rem;
+}
+.grid-productos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.2rem;
+}
+.tarjeta-producto {
+    background: white;
+    border: 1px solid #f0c0d4;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.tarjeta-producto img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+.sin-imagen {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: #fdf0f5;
+}
+.info-producto {
+    padding: 0.8rem 1rem;
+}
+.info-producto h3 {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 4px;
+}
+.info-producto .descripcion {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+.info-producto .precio {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e91e8c;
+}
+.vacio {
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+    padding: 2rem 0;
+}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chips = document.querySelectorAll('.chip');
+    const tarjetas = document.querySelectorAll('.tarjeta-producto');
+
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+
+            const filtro = chip.dataset.filtro;
+            tarjetas.forEach(tarjeta => {
+                if (filtro === 'todo' || tarjeta.dataset.categoria === filtro) {
+                    tarjeta.style.display = '';
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

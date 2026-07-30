@@ -1,0 +1,7 @@
+[
+  {"model": "catalogo.categoria", "pk": 1, "fields": {"nombre": "FLORES", "descripcion": "", "orden": 1}},
+  {"model": "catalogo.categoria", "pk": 2, "fields": {"nombre": "CAJAS_SORPRESA", "descripcion": "", "orden": 2}},
+  {"model": "catalogo.categoria", "pk": 3, "fields": {"nombre": "LLAVEROS", "descripcion": "", "orden": 3}},
+  {"model": "catalogo.categoria", "pk": 4, "fields": {"nombre": "MONAS", "descripcion": "", "orden": 4}},
+  {"model": "catalogo.categoria", "pk": 5, "fields": {"nombre": "DETALLES_HOMBRES", "descripcion": "", "orden": 5}}
+]

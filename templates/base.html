@@ -104,7 +104,7 @@
     </div>
     <div class="nav-links">
         <a href="{% url 'catalogo:inicio' %}">Home</a>
-        <a href="#">Catálogo</a>
+        <a href="{% url 'catalogo:lista' %}">Catálogo</a>
         <a href="#">Crea tu detalle</a>
         <a href="#">Mis pedidos</a>
         <a href="{% url 'usuarios:login' %}">Login</a>
@@ -127,6 +127,7 @@
     © 2026 Mimada. Artesanía Colombiana.<br>
     📱 Contacto: 323 888 3587 &nbsp;|&nbsp; 📷 Instagram: @mimada.detalles
 </footer>
+{% block extra_scripts %}{% endblock %}
 
 </body>
 </html>
