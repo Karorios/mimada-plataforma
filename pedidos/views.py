@@ -15,16 +15,20 @@ def crear_detalle(request):
             return ItemInventario.objects.none()
 
     rosas = items_de('Rosas')
+    girasoles = items_de('girasoles')
     cintas = items_de('Cintas')
     papeles = items_de('papel coreano')
     adicionales = items_de('adicciones')
 
     precio_base_rosa = rosas.first().precio if rosas.exists() else 0
+    precio_base_girasol = girasoles.first().precio if girasoles.exists() else 0
 
     return render(request, 'pedidos/crear_detalle.html', {
         'rosas': rosas,
+        'girasoles': girasoles,
         'cintas': cintas,
         'papeles': papeles,
         'adicionales': adicionales,
         'precio_base_rosa': precio_base_rosa,
+        'precio_base_girasol': precio_base_girasol,
     })

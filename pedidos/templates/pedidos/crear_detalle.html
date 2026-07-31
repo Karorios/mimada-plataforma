@@ -20,27 +20,30 @@
                 <span class="cantidad-label">rosas</span>
             </div>
             <button type="button" class="btn-cantidad" id="btn-mas">+</button>
-            <span class="precio-base">Precio base: <strong id="precio-base-texto">${{ precio_base_rosa }}</strong></span>
-        </div>
+            <span class="precio-base">Precio base: <strong id="precio-base-texto">${{ precio_base_rosa|default_if_none:"Por definir" }}</strong></span>
+                    </div>
         <input type="range" id="slider-cantidad" min="1" max="20" value="1" step="1">
         <div class="rango-labels"><span>1</span><span>20</span></div>
     </div>
 
     <div class="config-card">
-        <h2>Color de las rosas</h2>
-        <div class="swatches" id="swatches-rosas">
-            {% for rosa in rosas %}
-            <button type="button" class="swatch" data-precio="{{ rosa.precio|default:0 }}" data-id="{{ rosa.id }}"
-                    style="background-color: {{ rosa.color|default:'#eee' }};" title="{{ rosa.nombre }}"></button>
-            {% empty %}
-            <p class="vacio-inline">Aún no hay colores de rosa cargados.</p>
-            {% endfor %}
+        <h2>Cantidad de girasoles</h2>
+        <div class="cantidad-control">
+            <button type="button" class="btn-cantidad" id="btn-girasol-menos">−</button>
+            <div class="cantidad-display">
+                <span id="girasol-cantidad-num">0</span>
+                <span class="cantidad-label">girasoles</span>
+            </div>
+            <button type="button" class="btn-cantidad" id="btn-girasol-mas">+</button>
+            <span class="precio-base">Precio base: <strong id="precio-base-girasol-texto">${{ precio_base_girasol|default_if_none:"Por definir" }}</strong></span>
         </div>
-        <p class="seleccionados" id="seleccion-rosa">Sin seleccionar</p>
+        <input type="range" id="slider-girasol-cantidad" min="0" max="20" value="0" step="1">
+        <div class="rango-labels"><span>0</span><span>20</span></div>
     </div>
 
+
     <div class="config-card">
-        <h2>Color de la cinta</h2>
+        <h2>Color de rosa</h2>
         <div class="swatches" id="swatches-cintas">
             {% for cinta in cintas %}
             <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}"
@@ -82,7 +85,8 @@
     <div class="config-card resumen-card">
         <h2>Tu pedido</h2>
         <div class="resumen-linea"><span>Rosas</span><span id="resumen-rosas">$0</span></div>
-        <div class="resumen-linea"><span>Cinta</span><span id="resumen-cinta">$0</span></div>
+        <div class="resumen-linea"><span>Girasoles</span><span id="resumen-girasoles">$0</span></div>
+        <div class="resumen-linea"><span>Color rosa</span><span id="resumen-cinta">$0</span></div>
         <div class="resumen-linea"><span>Papel</span><span id="resumen-papel">$0</span></div>
         <div class="resumen-linea"><span>Adicionales</span><span id="resumen-adicionales">$0</span></div>
         <div class="resumen-linea total"><span>Total</span><span id="resumen-total">$0</span></div>
@@ -136,6 +140,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const numEl = document.getElementById('cantidad-num');
     const sliderEl = document.getElementById('slider-cantidad');
+    const precioBaseGirasol = parseFloat("{{ precio_base_girasol|default:0 }}");
+    let cantidadGirasoles = 0;
+    const girasolNumEl = document.getElementById('girasol-cantidad-num');
+    const girasolSliderEl = document.getElementById('slider-girasol-cantidad');
+
+    function actualizarCantidadGirasoles(nueva) {
+        cantidadGirasoles = Math.min(20, Math.max(0, nueva));
+        girasolNumEl.textContent = cantidadGirasoles;
+        girasolSliderEl.value = cantidadGirasoles;
+        recalcular();
+    }
+
+    document.getElementById('btn-girasol-menos').addEventListener('click', () => actualizarCantidadGirasoles(cantidadGirasoles - 1));
+    document.getElementById('btn-girasol-mas').addEventListener('click', () => actualizarCantidadGirasoles(cantidadGirasoles + 1));
+    girasolSliderEl.addEventListener('input', (e) => actualizarCantidadGirasoles(parseInt(e.target.value)));
 
     function actualizarCantidad(nueva) {
         cantidad = Math.min(20, Math.max(1, nueva));
@@ -148,26 +167,27 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-mas').addEventListener('click', () => actualizarCantidad(cantidad + 1));
     sliderEl.addEventListener('input', (e) => actualizarCantidad(parseInt(e.target.value)));
 
-    function manejarGrupoSwatch(containerId, callback) {
-        const contenedor = document.getElementById(containerId);
-        if (!contenedor) return;
-        contenedor.querySelectorAll('.swatch').forEach(sw => {
+    const cintaContenedor = document.getElementById('swatches-cintas');
+    if (cintaContenedor) {
+        cintaContenedor.querySelectorAll('.swatch').forEach(sw => {
             sw.addEventListener('click', () => {
-                contenedor.querySelectorAll('.swatch').forEach(s => s.classList.remove('activo'));
-                sw.classList.add('activo');
-                callback(parseFloat(sw.dataset.precio || 0), sw.title);
-                recalcular();
+                sw.classList.toggle('activo');
+                recalcularColorRosa();
             });
         });
     }
 
-    manejarGrupoSwatch('swatches-rosas', (precio, nombre) => {
-        document.getElementById('seleccion-rosa').textContent = nombre;
-    });
-    manejarGrupoSwatch('swatches-cintas', (precio, nombre) => {
-        precioCinta = precio;
-        document.getElementById('seleccion-cinta').textContent = nombre;
-    });
+    function recalcularColorRosa() {
+        const seleccionados = cintaContenedor
+            ? Array.from(cintaContenedor.querySelectorAll('.swatch.activo'))
+            : [];
+        precioCinta = seleccionados.reduce((suma, sw) => suma + parseFloat(sw.dataset.precio || 0), 0);
+        const nombres = seleccionados.map(sw => sw.title);
+        document.getElementById('seleccion-cinta').textContent = nombres.length
+            ? nombres.join(', ')
+            : 'Sin seleccionar';
+        recalcular();
+    }
 
     const papelContenedor = document.getElementById('opciones-papel');
     if (papelContenedor) {
@@ -200,9 +220,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function recalcular() {
         const totalRosas = precioBaseRosa * cantidad;
-        const total = totalRosas + precioCinta + precioPapel + precioAdicionales;
+        const totalGirasoles = precioBaseGirasol * cantidadGirasoles;
+        const total = totalRosas + totalGirasoles + precioCinta + precioPapel + precioAdicionales;
 
         document.getElementById('resumen-rosas').textContent = formatoMoneda(totalRosas);
+        document.getElementById('resumen-girasoles').textContent = formatoMoneda(totalGirasoles);
         document.getElementById('resumen-cinta').textContent = formatoMoneda(precioCinta);
         document.getElementById('resumen-papel').textContent = formatoMoneda(precioPapel);
         document.getElementById('resumen-adicionales').textContent = formatoMoneda(precioAdicionales);

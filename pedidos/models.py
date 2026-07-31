@@ -44,11 +44,11 @@ class DetallePedido(models.Model):
 class ConfiguracionRamo(models.Model):
     """Solo existe si DetallePedido.es_personalizado = True"""
     detalle_pedido = models.OneToOneField(DetallePedido, on_delete=models.CASCADE, related_name='configuracion')
-    cantidad_rosas = models.PositiveSmallIntegerField()
-    color_rosa = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+')
-    color_cinta = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+')
+    cantidad_rosas = models.PositiveSmallIntegerField(default=0)
+    color_rosa = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
+    cantidad_girasoles = models.PositiveSmallIntegerField(default=0)
+    color_cinta = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
     papel_decorativo = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
     adicionales = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
-
     def __str__(self):
         return f"Config. ramo - detalle #{self.detalle_pedido_id}"
