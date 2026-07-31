@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mimada - Crea tu detalle{% endblock %}
+
+{% block content %}
+<section class="config-header">
+    <h1>Crea tu detalle</h1>
+    <p class="subtitulo">Arma tu ramo paso a paso</p>
+</section>
+
+<div class="config-wrapper">
+
+    <div class="config-card">
+        <h2>Cantidad de rosas</h2>
+        <div class="cantidad-control">
+            <button type="button" class="btn-cantidad" id="btn-menos">−</button>
+            <div class="cantidad-display">
+                <span id="cantidad-num">1</span>
+                <span class="cantidad-label">rosas</span>
+            </div>
+            <button type="button" class="btn-cantidad" id="btn-mas">+</button>
+            <span class="precio-base">Precio base: <strong id="precio-base-texto">${{ precio_base_rosa }}</strong></span>
+        </div>
+        <input type="range" id="slider-cantidad" min="1" max="20" value="1" step="1">
+        <div class="rango-labels"><span>1</span><span>20</span></div>
+    </div>
+
+    <div class="config-card">
+        <h2>Color de las rosas</h2>
+        <div class="swatches" id="swatches-rosas">
+            {% for rosa in rosas %}
+            <button type="button" class="swatch" data-precio="{{ rosa.precio|default:0 }}" data-id="{{ rosa.id }}"
+                    style="background-color: {{ rosa.color|default:'#eee' }};" title="{{ rosa.nombre }}"></button>
+            {% empty %}
+            <p class="vacio-inline">Aún no hay colores de rosa cargados.</p>
+            {% endfor %}
+        </div>
+        <p class="seleccionados" id="seleccion-rosa">Sin seleccionar</p>
+    </div>
+
+    <div class="config-card">
+        <h2>Color de la cinta</h2>
+        <div class="swatches" id="swatches-cintas">
+            {% for cinta in cintas %}
+            <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}"
+                    style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+            {% empty %}
+            <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
+            {% endfor %}
+        </div>
+        <p class="seleccionados" id="seleccion-cinta">Sin seleccionar</p>
+    </div>
+
+    <div class="config-card">
+        <h2>Papel de decoración</h2>
+        <div class="opciones-lista" id="opciones-papel">
+            {% for papel in papeles %}
+            <button type="button" class="opcion-btn" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id }}">
+                {{ papel.nombre }}
+            </button>
+            {% empty %}
+            <p class="vacio-inline">Aún no hay papeles cargados.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="config-card">
+        <h2>Adicionales</h2>
+        <div class="opciones-lista" id="opciones-adicionales">
+            {% for extra in adicionales %}
+            <label class="checkbox-opcion">
+                <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:0 }}">
+                {{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio }}){% endif %}
+            </label>
+            {% empty %}
+            <p class="vacio-inline">Aún no hay adicionales cargados.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="config-card resumen-card">
+        <h2>Tu pedido</h2>
+        <div class="resumen-linea"><span>Rosas</span><span id="resumen-rosas">$0</span></div>
+        <div class="resumen-linea"><span>Cinta</span><span id="resumen-cinta">$0</span></div>
+        <div class="resumen-linea"><span>Papel</span><span id="resumen-papel">$0</span></div>
+        <div class="resumen-linea"><span>Adicionales</span><span id="resumen-adicionales">$0</span></div>
+        <div class="resumen-linea total"><span>Total</span><span id="resumen-total">$0</span></div>
+        <button type="button" class="btn-confirmar" disabled>
+            Confirmar pedido (próximamente)
+        </button>
+        <p class="nota-login">Para confirmar tu pedido deberás iniciar sesión.</p>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.config-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.config-header h1 { color: #c2185b; font-size: 1.8rem; }
+.config-wrapper { max-width: 700px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; }
+.config-card { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; }
+.config-card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 1rem; }
+.cantidad-control { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+.btn-cantidad { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #f0c0d4; background: #fdf0f5; font-size: 18px; cursor: pointer; }
+.cantidad-display { text-align: center; }
+#cantidad-num { font-size: 1.6rem; font-weight: 700; color: #c2185b; display: block; }
+.cantidad-label { font-size: 11px; color: #999; }
+.precio-base { margin-left: auto; font-size: 13px; color: #666; }
+.precio-base strong { color: #e91e8c; }
+input[type="range"] { width: 100%; accent-color: #e91e8c; }
+.rango-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; }
+.swatch.activo { border-color: #e91e8c; box-shadow: 0 0 0 2px #fce4ec; }
+.seleccionados { font-size: 12px; color: #999; margin-top: 8px; }
+.opciones-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.opcion-btn { background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #666; cursor: pointer; }
+.opcion-btn.activo { background: #e91e8c; color: white; border-color: #e91e8c; }
+.checkbox-opcion { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.resumen-card { background: #fdf0f5; }
+.resumen-linea { display: flex; justify-content: space-between; font-size: 13px; color: #666; padding: 6px 0; border-bottom: 1px dashed #f0c0d4; }
+.resumen-linea.total { border-bottom: none; font-weight: 700; color: #c2185b; font-size: 15px; margin-top: 6px; }
+.btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: not-allowed; opacity: 0.6; }
+.nota-login { text-align: center; font-size: 11px; color: #aaa; margin-top: 6px; }
+.vacio-inline { font-size: 12px; color: #bbb; }
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const precioBaseRosa = parseFloat("{{ precio_base_rosa|default:0 }}");
+    let cantidad = 1;
+    let precioCinta = 0, precioPapel = 0;
+    let precioAdicionales = 0;
+
+    const numEl = document.getElementById('cantidad-num');
+    const sliderEl = document.getElementById('slider-cantidad');
+
+    function actualizarCantidad(nueva) {
+        cantidad = Math.min(20, Math.max(1, nueva));
+        numEl.textContent = cantidad;
+        sliderEl.value = cantidad;
+        recalcular();
+    }
+
+    document.getElementById('btn-menos').addEventListener('click', () => actualizarCantidad(cantidad - 1));
+    document.getElementById('btn-mas').addEventListener('click', () => actualizarCantidad(cantidad + 1));
+    sliderEl.addEventListener('input', (e) => actualizarCantidad(parseInt(e.target.value)));
+
+    function manejarGrupoSwatch(containerId, callback) {
+        const contenedor = document.getElementById(containerId);
+        if (!contenedor) return;
+        contenedor.querySelectorAll('.swatch').forEach(sw => {
+            sw.addEventListener('click', () => {
+                contenedor.querySelectorAll('.swatch').forEach(s => s.classList.remove('activo'));
+                sw.classList.add('activo');
+                callback(parseFloat(sw.dataset.precio || 0), sw.title);
+                recalcular();
+            });
+        });
+    }
+
+    manejarGrupoSwatch('swatches-rosas', (precio, nombre) => {
+        document.getElementById('seleccion-rosa').textContent = nombre;
+    });
+    manejarGrupoSwatch('swatches-cintas', (precio, nombre) => {
+        precioCinta = precio;
+        document.getElementById('seleccion-cinta').textContent = nombre;
+    });
+
+    const papelContenedor = document.getElementById('opciones-papel');
+    if (papelContenedor) {
+        papelContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                papelContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                precioPapel = parseFloat(btn.dataset.precio || 0);
+                recalcular();
+            });
+        });
+    }
+
+    const adicionalesContenedor = document.getElementById('opciones-adicionales');
+    if (adicionalesContenedor) {
+        adicionalesContenedor.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            chk.addEventListener('change', () => {
+                precioAdicionales = 0;
+                adicionalesContenedor.querySelectorAll('input[type="checkbox"]:checked').forEach(c => {
+                    precioAdicionales += parseFloat(c.dataset.precio || 0);
+                });
+                recalcular();
+            });
+        });
+    }
+
+    function formatoMoneda(valor) {
+        return '$' + valor.toLocaleString('es-CO');
+    }
+
+    function recalcular() {
+        const totalRosas = precioBaseRosa * cantidad;
+        const total = totalRosas + precioCinta + precioPapel + precioAdicionales;
+
+        document.getElementById('resumen-rosas').textContent = formatoMoneda(totalRosas);
+        document.getElementById('resumen-cinta').textContent = formatoMoneda(precioCinta);
+        document.getElementById('resumen-papel').textContent = formatoMoneda(precioPapel);
+        document.getElementById('resumen-adicionales').textContent = formatoMoneda(precioAdicionales);
+        document.getElementById('resumen-total').textContent = formatoMoneda(total);
+    }
+
+    recalcular();
+});
+</script>
+{% endblock %}

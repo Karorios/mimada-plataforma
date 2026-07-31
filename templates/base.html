@@ -103,11 +103,18 @@
         <span class="brand-name">Mimada</span>
     </div>
     <div class="nav-links">
-        <a href="{% url 'catalogo:inicio' %}">Home</a>
+        <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'catalogo:lista' %}">Catálogo</a>
-        <a href="#">Crea tu detalle</a>
+        <a href="{% url 'pedidos:crear_detalle' %}">Crea tu detalle</a>
         <a href="#">Mis pedidos</a>
-        <a href="{% url 'usuarios:login' %}">Login</a>
+        {% if user.is_authenticated and user.es_admin %}
+            <a href="{% url 'catalogo:crear_producto' %}">+ Nuevo producto</a>
+        {% endif %}
+        {% if user.is_authenticated %}
+            <a href="#">Hola, {{ user.first_name|default:user.username }}</a>
+        {% else %}
+            <a href="{% url 'usuarios:login' %}">Login</a>
+        {% endif %}
     </div>
 </nav>
 
@@ -127,6 +134,7 @@
     © 2026 Mimada. Artesanía Colombiana.<br>
     📱 Contacto: 323 888 3587 &nbsp;|&nbsp; 📷 Instagram: @mimada.detalles
 </footer>
+
 {% block extra_scripts %}{% endblock %}
 
 </body>

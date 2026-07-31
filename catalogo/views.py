@@ -1,5 +1,9 @@
-from django.shortcuts import render
-from catalogo.models import Producto, Categoria
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+from .models import Producto, Categoria
+from .forms import ProductoForm
 
 
 def inicio(request):
@@ -18,3 +22,20 @@ def lista_productos(request):
         'productos': productos,
         'categorias': categorias,
     })
+
+
+@login_required(login_url='usuarios:login')
+def crear_producto(request):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto creado correctamente. Ya está visible en el catálogo.')
+            return redirect('catalogo:crear_producto')
+    else:
+        form = ProductoForm()
+
+    return render(request, 'catalogo/crear_producto.html', {'form': form})
