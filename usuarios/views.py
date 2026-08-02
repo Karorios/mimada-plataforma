@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .forms import LoginForm, RegistroForm
-
-
+from django.contrib.auth.decorators import login_required
+from catalogo.models import Producto
+from django.shortcuts import render, redirect, get_object_or_404
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -56,3 +57,19 @@ def login_admin_view(request):
             )
 
     return render(request, 'usuarios/login_admin.html')
+
+
+@login_required(login_url='usuarios:login')
+def favoritos_view(request):
+    favoritos = request.user.favoritos.all()
+    return render(request, 'usuarios/favoritos.html', {'favoritos': favoritos})
+
+
+@login_required(login_url='usuarios:login')
+def toggle_favorito(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    if producto in request.user.favoritos.all():
+        request.user.favoritos.remove(producto)
+    else:
+        request.user.favoritos.add(producto)
+    return redirect(request.META.get('HTTP_REFERER', 'usuarios:favoritos'))

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada - Mis favoritos{% endblock %}
+
+{% block content %}
+<section class="favoritos-header">
+    <h1>Mis favoritos</h1>
+    <p class="subtitulo">Los detalles que más te gustan</p>
+</section>
+
+<div class="galeria">
+    {% if favoritos %}
+    <div class="grid-productos">
+        {% for producto in favoritos %}
+        <div class="tarjeta-producto">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+                <div class="sin-imagen">🌸</div>
+            {% endif %}
+            <div class="info-producto">
+                <h3>{{ producto.nombre }}</h3>
+                <p class="categoria-producto">{{ producto.categoria.get_nombre_display }}</p>
+                <div class="fila-precio">
+                    <p class="precio">${{ producto.precio }}</p>
+                    <a href="{% url 'usuarios:toggle_favorito' producto.id %}" class="btn-quitar-favorito">Quitar</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="vacio">Aún no has marcado ningún producto como favorito.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.favoritos-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.favoritos-header h1 { color: #c2185b; font-size: 1.8rem; }
+.galeria { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+.grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+.tarjeta-producto { background: white; border: 1px solid #f0c0d4; border-radius: 12px; overflow: hidden; }
+.tarjeta-producto img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.sin-imagen { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: #fdf0f5; }
+.info-producto { padding: 0.9rem 1rem; }
+.info-producto h3 { font-size: 15px; color: #333; margin-bottom: 2px; }
+.categoria-producto { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+.fila-precio { display: flex; align-items: center; justify-content: space-between; }
+.precio { font-size: 15px; font-weight: 700; color: #e91e8c; }
+.btn-quitar-favorito { background: #fdf0f5; color: #c2185b; border: 1px solid #f0c0d4; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+.vacio { text-align: center; color: #aaa; font-size: 14px; padding: 2rem 0; }
+{% endblock %}

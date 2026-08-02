@@ -6,6 +6,7 @@ class Usuario(AbstractUser):
     es_cliente = models.BooleanField(default=True)
     es_admin = models.BooleanField(default=False)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    favoritos = models.ManyToManyField('catalogo.Producto', blank=True, related_name='favoritado_por')
 
     def __str__(self):
         return self.email
