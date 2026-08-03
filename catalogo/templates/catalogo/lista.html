@@ -21,11 +21,19 @@
     <div class="grid-productos">
         {% for producto in productos %}
         <div class="tarjeta-producto" data-categoria="{{ producto.categoria.nombre }}">
-            {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-            {% else %}
-                <div class="sin-imagen">🌸</div>
-            {% endif %}
+            <div class="imagen-wrap">
+                {% if producto.imagen %}
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% else %}
+                    <div class="sin-imagen">🌸</div>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <a href="{% url 'usuarios:toggle_favorito' producto.id %}"
+                       class="btn-favorito {% if producto in user.favoritos.all %}activo{% endif %}">♥</a>
+                {% else %}
+                    <a href="{% url 'usuarios:login' %}" class="btn-favorito">♥</a>
+                {% endif %}
+            </div>
             <div class="info-producto">
                 {% if producto.disponible %}
                     <span class="badge-producto">Artesanal</span>
@@ -64,6 +72,28 @@
     border-radius: 999px;
     margin-bottom: 6px;
 }
+.imagen-wrap {
+    position: relative;
+}
+.btn-favorito {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.btn-favorito.activo {
+    color: #e91e8c;
+}
+
 .badge-agotado {
     background: #f0f0f0;
     color: #999;
