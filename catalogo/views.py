@@ -48,7 +48,6 @@ def lista_productos(request):
         'categorias': categorias,
     })
 
-
 @login_required(login_url='usuarios:login')
 def crear_producto(request):
     if not request.user.es_admin:
@@ -58,9 +57,64 @@ def crear_producto(request):
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Producto creado correctamente. Ya está visible en el catálogo.')
-            return redirect('catalogo:crear_producto')
+            messages.success(request, '✅ Producto creado correctamente.')
+            return redirect('catalogo:admin_dashboard')
     else:
         form = ProductoForm()
 
     return render(request, 'catalogo/crear_producto.html', {'form': form})
+
+@login_required(login_url='usuarios:login')
+def eliminar_producto(request, pk):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    producto = Producto.objects.get(pk=pk)
+
+    producto.delete()
+
+    messages.success(request, "Producto eliminado correctamente.")
+
+    return redirect('catalogo:admin_dashboard')
+
+@login_required(login_url='usuarios:login')
+def admin_dashboard(request):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    productos = Producto.objects.select_related('categoria').all()
+
+    context = {
+        'productos': productos,
+        'total_productos': productos.count(),
+        'productos_disponibles': productos.filter(disponible=True).count(),
+        'productos_destacados': productos.filter(destacado=True).count(),
+    }
+
+    return render(request, 'catalogoadmin/dashboard.html', context)
+@login_required(login_url='usuarios:login')
+def editar_producto(request, pk):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    producto = Producto.objects.get(pk=pk)
+
+    if request.method == "POST":
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Producto actualizado correctamente.")
+            return redirect('catalogo:admin_dashboard')
+
+    else:
+        form = ProductoForm(instance=producto)
+
+    return render(
+        request,
+        "catalogo/crear_producto.html",
+        {
+            "form": form,
+            "editar": True
+        }
+    )

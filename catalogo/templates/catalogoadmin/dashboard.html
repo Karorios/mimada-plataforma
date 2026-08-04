@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimada Admin - Catálogo</title>
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body{
+            font-family:'Segoe UI',sans-serif;
+            background:#fdf0f5;
+            min-height:100vh;
+            display:flex;
+        }
+        .alert-success{
+    background:#d4edda;
+    color:#155724;
+    border:1px solid #c3e6cb;
+    padding:14px 18px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-weight:600;
+}
+        .sidebar{
+            width:220px;
+            background:white;
+            border-right:1px solid #f5d5e3;
+            padding:1.5rem 1rem;
+            display:flex;
+            flex-direction:column;
+            min-height:100vh;
+        }
+
+        .sidebar-brand{
+            margin-bottom:2rem;
+            padding-left:.5rem;
+        }
+
+        .sidebar-brand h1{
+            font-size:18px;
+            color:#c2185b;
+        }
+
+        .sidebar-brand p{
+            font-size:11px;
+            color:#999;
+        }
+
+        .nav-link{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border-radius:8px;
+            text-decoration:none;
+            color:#666;
+            margin-bottom:5px;
+        }
+
+        .nav-link:hover{
+            background:#fdf0f5;
+        }
+
+        .nav-link.active{
+            background:#fce4ec;
+            color:#c2185b;
+            border:1px solid #f48fb1;
+            font-weight:600;
+        }
+
+        .nav-icon{
+            width:20px;
+            text-align:center;
+        }
+
+        .sidebar-footer{
+            margin-top:auto;
+            display:flex;
+            gap:10px;
+            align-items:center;
+            border-top:1px solid #f5d5e3;
+            padding:10px;
+        }
+
+        .avatar-mini{
+            width:34px;
+            height:34px;
+            border-radius:50%;
+            background:#f48fb1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-weight:bold;
+        }
+
+        .user-info-mini p:first-child{
+            font-weight:600;
+        }
+
+        .user-info-mini p:last-child{
+            font-size:11px;
+            color:#888;
+        }
+
+        .main{
+            flex:1;
+            padding:2rem;
+        }
+
+        .main-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:2rem;
+        }
+
+        .main-header h2{
+            color:#333;
+            font-size:28px;
+        }
+
+        .main-header p{
+            color:#888;
+            margin-top:4px;
+        }
+
+        .btn-primary{
+            background:#c2185b;
+            color:white;
+            padding:10px 20px;
+            border-radius:25px;
+            text-decoration:none;
+            font-size:14px;
+            font-weight:600;
+        }
+
+        .btn-primary:hover{
+            background:#880e4f;
+        }
+
+        .cards{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:20px;
+            margin-bottom:25px;
+        }
+
+        .card{
+            background:white;
+            border:1px solid #f5d5e3;
+            border-radius:14px;
+            padding:20px;
+        }
+
+        .card h3{
+            color:#999;
+            font-size:13px;
+            font-weight:500;
+        }
+
+        .card span{
+            display:block;
+            margin-top:10px;
+            color:#c2185b;
+            font-size:32px;
+            font-weight:bold;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            background:white;
+            border-radius:15px;
+            overflow:hidden;
+            border:1px solid #f5d5e3;
+        }
+
+        thead{
+            background:#fdf5f9;
+        }
+
+        th{
+            padding:15px;
+            text-align:left;
+            color:#999;
+            font-size:12px;
+            text-transform:uppercase;
+        }
+
+        td{
+            padding:15px;
+            border-top:1px solid #f4f4f4;
+            font-size:14px;
+        }
+
+        .item-img{
+            width:45px;
+            height:45px;
+            border-radius:8px;
+            object-fit:cover;
+        }
+
+        .placeholder{
+            width:45px;
+            height:45px;
+            background:#fce4ec;
+            border-radius:8px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .badge{
+            padding:5px 12px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:bold;
+        }
+
+        .si{
+            background:#e8f5e9;
+            color:#2e7d32;
+        }
+
+        .no{
+            background:#ffebee;
+            color:#c62828;
+        }
+
+        .acciones a{
+            text-decoration:none;
+            margin-right:10px;
+            font-size:13px;
+        }
+
+        .editar{
+            color:#1976d2;
+        }
+
+        .eliminar{
+            color:#c62828;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="sidebar-brand">
+        <h1>Mimada Admin</h1>
+        <p>GESTIÓN FLORAL</p>
+    </div>
+
+    <nav>
+
+        <a href="{% url 'home' %}" class="nav-link">
+            <span class="nav-icon">🏠</span> Inicio
+        </a>
+
+        <a href="{% url 'inventario:dashboard' %}" class="nav-link">
+            <span class="nav-icon">📦</span> Inventario
+        </a>
+
+        <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link active">
+            <span class="nav-icon">🛍️</span> Catálogo
+        </a>
+
+        <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
+            <span class="nav-icon">🧾</span> Pedidos
+        </a>
+
+        <a href="{% url 'finanzas:dashboard' %}" class="nav-link">
+            <span class="nav-icon">💰</span> Finanzas
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="avatar-mini">
+            {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+        </div>
+
+        <div class="user-info-mini">
+            <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+            <p>Administrador</p>
+        </div>
+
+    </div>
+
+</aside>
+
+<main class="main">
+
+    <div class="main-header">
+
+        <div>
+
+            <h2>Gestión del Catálogo</h2>
+
+            <p>Administra los productos que se muestran en la tienda.</p>
+
+        </div>
+        {% if messages %}
+    {% for message in messages %}
+        <div class="alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+        <a href="{% url 'catalogo:crear_producto' %}" class="btn-primary">
+            + Agregar Producto
+        </a>
+
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Productos</h3>
+            <span>{{ total_productos }}</span>
+        </div>
+
+        <div class="card">
+            <h3>Disponibles</h3>
+            <span>{{ productos_disponibles }}</span>
+        </div>
+
+        <div class="card">
+            <h3>Destacados</h3>
+            <span>{{ productos_destacados }}</span>
+        </div>
+
+    </div>
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Disponible</th>
+                <th>Destacado</th>
+                <th>Acciones</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for producto in productos %}
+
+            <tr>
+
+                <td>
+
+                    {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" class="item-img">
+                    {% else %}
+                        <div class="placeholder">🌸</div>
+                    {% endif %}
+
+                </td>
+
+                <td>{{ producto.nombre }}</td>
+
+                <td>{{ producto.categoria.get_nombre_display }}</td>
+
+                <td>${{ producto.precio }}</td>
+
+                <td>
+
+                    {% if producto.disponible %}
+                        <span class="badge si">Sí</span>
+                    {% else %}
+                        <span class="badge no">No</span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if producto.destacado %}
+                        ⭐
+                    {% else %}
+                        —
+                    {% endif %}
+
+                </td>
+
+                <td class="acciones">
+                    <a href="{% url 'home' %}">
+                        Inicio
+                    </a>
+                    <a href="{% url 'catalogo:editar_producto' producto.id %}"
+                     class="editar">
+                        ✏️ Editar
+                    </a>
+
+                    <a href="{% url 'catalogo:eliminar_producto' producto.id %}"
+                       class="eliminar"
+                       onclick="return confirm('¿Eliminar este producto?');">
+                       🗑️ Eliminar
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="7" style="text-align:center;padding:40px;color:#999;">
+                    No hay productos registrados.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</main>
+
+</body>
+</html>

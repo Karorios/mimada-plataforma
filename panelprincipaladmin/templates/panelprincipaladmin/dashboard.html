@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel administrador · Mimada</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdf0f5;
+            margin: 0;
+            color: #333;
+        }
+        header {
+            background: #e91e8c;
+            color: white;
+            padding: 20px 30px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        header p {
+            margin: 4px 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .contenedor {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .seccion {
+            background: #fff9fb;
+            border: 1px solid #f0c0d4;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .seccion-titulo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .seccion-titulo h2 {
+            color: #c2185b;
+            margin: 0;
+            font-size: 18px;
+        }
+        .btn-nuevo {
+            background: #e91e8c;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn-nuevo:hover {
+            background: #c2185b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #f0c0d4;
+            font-size: 14px;
+        }
+        th {
+            color: #c2185b;
+            font-weight: 600;
+        }
+        .miniatura {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #f0c0d4;
+        }
+        .sin-imagen {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background: #f0c0d4;
+            display: inline-block;
+        }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .badge-si { background: #e8f5e9; color: #2e7d32; }
+        .badge-no { background: #fdecea; color: #c62828; }
+        .vacio {
+            color: #999;
+            font-style: italic;
+            padding: 16px 0;
+        }
+        .modulos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .modulo-card {
+            display: block;
+            background: white;
+            border: 1px solid #f0c0d4;
+            border-radius: 10px;
+            padding: 18px;
+            text-decoration: none;
+            color: #333;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .modulo-card:hover {
+            box-shadow: 0 4px 12px rgba(233, 30, 140, 0.15);
+            transform: translateY(-2px);
+        }
+        .modulo-icono {
+            font-size: 26px;
+        }
+        .modulo-nombre {
+            color: #c2185b;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 8px 0 4px;
+        }
+        .modulo-nota {
+            font-size: 13px;
+            color: #999;
+        }
+        .modulo-nota.en-desarrollo {
+            color: #b8860b;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Panel administrador · Mimada</h1>
+        <p>Hola, {{ request.user.first_name|default:request.user.username }}</p>
+    </header>
+
+    <div class="contenedor">
+
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Productos del catálogo</h2>
+                <a class="btn-nuevo" href="{% url 'catalogo:crear_producto' %}">+ Nuevo producto</a>
+            </div>
+
+            {% if productos %}
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Disponible</th>
+                        <th>Destacado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td>
+                            {% if producto.imagen %}
+                                <img class="miniatura" src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                            {% else %}
+                                <span class="sin-imagen"></span>
+                            {% endif %}
+                        </td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.categoria.get_nombre_display }}</td>
+                        <td>${{ producto.precio }}</td>
+                        <td>
+                            {% if producto.disponible %}
+                                <span class="badge badge-si">Sí</span>
+                            {% else %}
+                                <span class="badge badge-no">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if producto.destacado %}⭐{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="vacio">Todavía no hay productos cargados en el catálogo.</p>
+            {% endif %}
+        </div>
+
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Módulos de gestión</h2>
+            </div>
+            <div class="modulos-grid">
+                <a class="modulo-card" href="{% url 'finanzas:dashboard' %}">
+                    <div class="modulo-icono">💰</div>
+                    <div class="modulo-nombre">Finanzas</div>
+                    <div class="modulo-nota">Ver módulo</div>
+                </a>
+                <a class="modulo-card" href="{% url 'inventario:dashboard' %}">
+                    <div class="modulo-icono">📦</div>
+                    <div class="modulo-nombre">Inventario</div>
+                    <div class="modulo-nota">Ver módulo</div>
+                </a>
+                <a class="modulo-card" href="{% url 'pedidosadmin:dashboard' %}">
+                    <div class="modulo-icono">🧾</div>
+                    <div class="modulo-nombre">Pedidos</div>
+                    <div class="modulo-nota en-desarrollo">En desarrollo</div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

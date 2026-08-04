@@ -125,7 +125,19 @@
             color: #c2185b;
             margin-bottom: 0.5rem;
         }
+        .admin-link{
+        background:#e91e63;
+        color:white !important;
+        padding:8px 16px !important;
+        border-radius:20px;
+        border:none !important;
+        transition:.2s;
+    }
 
+        .admin-link:hover{
+            background:#c2185b;
+            color:white !important;
+        }
         /* FOOTER */
         footer {
             background: white;
@@ -151,19 +163,53 @@
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'catalogo:lista' %}">Catálogo</a>
         <a href="{% url 'pedidos:crear_detalle' %}">Crea tu detalle</a>
+
         {% if user.is_authenticated and user.es_admin %}
-            <a href="{% url 'catalogo:crear_producto' %}">+ Nuevo producto</a>
-        {% endif %}
+
+    {% endif %}
+
         {% if user.is_authenticated %}
             <div class="user-menu">
                 <button type="button" class="user-menu-btn" id="user-menu-btn">
                     Hola, {{ user.first_name|default:user.username }} ▾
                 </button>
                 <div class="user-menu-dropdown" id="user-menu-dropdown">
-                    <a href="{% url 'pedidos:inicio' %}">Mis pedidos</a>
-                    <a href="{% url 'usuarios:favoritos' %}">Favoritos</a>
-                    <a href="{% url 'usuarios:logout' %}">Cerrar sesión</a>
-                </div>
+
+    {% if user.es_admin %}
+
+<a href="{% url 'catalogo:admin_dashboard' %}">
+    🛍️ Catálogo
+</a>
+
+<a href="{% url 'inventario:dashboard' %}">
+    📦 Inventario
+</a>
+
+<a href="{% url 'pedidosadmin:dashboard' %}">
+    🧾 Pedidos
+</a>
+
+<a href="{% url 'finanzas:dashboard' %}">
+    💰 Finanzas
+</a>
+
+    {% else %}
+
+        <a href="{% url 'pedidos:inicio' %}">
+            Mis pedidos
+        </a>
+
+        <a href="{% url 'usuarios:favoritos' %}">
+            Favoritos
+        </a>
+
+    {% endif %}
+
+    <a href="{% url 'usuarios:logout' %}">
+        Cerrar sesión
+    </a>
+
+</div>
             </div>
         {% else %}
             <a href="{% url 'usuarios:login' %}">Login</a>

@@ -2,7 +2,25 @@ from django.urls import path
 from . import views
 
 app_name = 'catalogo'
+
 urlpatterns = [
+    # Catálogo clientes
     path('lista/', views.lista_productos, name='lista'),
+
+    # Crear producto (ya existe)
     path('crear-producto/', views.crear_producto, name='crear_producto'),
+
+    # Nuevo módulo administrador
+    path('admin/', views.admin_dashboard, name='admin_dashboard'),
+
+path(
+    'admin/eliminar/<int:pk>/',
+    views.eliminar_producto,
+    name='eliminar_producto'
+),
+path(
+    'admin/editar/<int:pk>/',
+    views.editar_producto,
+    name='editar_producto'
+)
 ]
