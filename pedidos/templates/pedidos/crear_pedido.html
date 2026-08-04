@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada | Información del pedido{% endblock %}
+
+{% block content %}
+
+<div class="contenedor">
+
+    <div class="card">
+
+        <h1>Información del pedido</h1>
+
+        <p class="subtitulo">
+            Completa la información para continuar con tu compra.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="producto"
+                value="{{ producto }}"
+            >
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn-continuar">
+                Continuar al resumen →
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_style %}
+
+.contenedor{
+    max-width:850px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:14px;
+    padding:35px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    border:1px solid #f3d8e3;
+}
+
+h1{
+    color:#d63384;
+    margin-bottom:8px;
+}
+
+.subtitulo{
+    color:#777;
+    margin-bottom:30px;
+}
+
+form p{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+    color:#444;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:15px;
+    transition:.2s;
+    box-sizing:border-box;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:#d63384;
+    outline:none;
+}
+
+textarea{
+    resize:vertical;
+}
+
+input[type="checkbox"]{
+    width:auto;
+    margin-right:8px;
+}
+
+.btn-continuar{
+    width:100%;
+    padding:14px;
+    background:#d63384;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:20px;
+    transition:.2s;
+}
+
+.btn-continuar:hover{
+    background:#bb2d6b;
+}
+
+.helptext{
+    display:block;
+    font-size:12px;
+    color:#888;
+    margin-top:5px;
+}
+
+.errorlist{
+    color:#dc3545;
+    list-style:none;
+    padding:0;
+    margin:5px 0;
+}
+
+{% endblock %}

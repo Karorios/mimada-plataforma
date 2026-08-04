@@ -10,26 +10,100 @@ class Pedido(models.Model):
         ('PENDIENTE', 'Pendiente'),
         ('CONFIRMADO', 'Confirmado'),
         ('EN_PROCESO', 'En proceso'),
-        ('ENVIADO', 'Enviado'),
+        ('LISTO', 'Listo para entregar'),
         ('ENTREGADO', 'Entregado'),
         ('CANCELADO', 'Cancelado'),
     ]
+    TIPO_ENTREGA = [
+        ('DOMICILIO', 'Domicilio'),
+        ('SOACHA', 'Recoger en Soacha'),
+        ('PLAZA', 'Recoger en Plaza de las Américas'),
+    ]
 
-    cliente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='pedidos')
-    estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='PENDIENTE')
-    direccion_entrega = models.CharField(max_length=255)
-    telefono_contacto = models.CharField(max_length=20)
-    notas = models.TextField(blank=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    cliente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='pedidos'
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
+
+    tipo_entrega = models.CharField(
+        max_length=20,
+        choices=TIPO_ENTREGA,
+        default='DOMICILIO'
+    )
+
+    es_regalo = models.BooleanField(default=False)
+
+    entrega_anonima = models.BooleanField(default=False)
+
+    nombre_destinatario = models.CharField(
+        max_length=120,
+        blank=True
+    )
+
+    telefono_destinatario = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
+    mensaje = models.TextField(
+        blank=True
+    )
+
+    direccion = models.CharField(
+        max_length=250,
+        blank=True
+    )
+
+    barrio = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    ciudad = models.CharField(
+        max_length=80,
+        default="Bogotá"
+    )
+
+    referencia = models.TextField(
+        blank=True
+    )
+
+    fecha_entrega = models.DateField(
+        null=True,
+        blank=True
+    )
+    hora_entrega = models.CharField(
+        max_length=30,
+        blank=True,
+        default=""
+    )
+
+    valor_domicilio = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.cliente}"
 
-
 class DetallePedido(models.Model):
-    """Una línea del pedido: puede ser un producto del catálogo TAL CUAL,
-    o un ramo personalizado armado en 'Crea tu detalle'."""
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='detalles')
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT, null=True, blank=True)
     es_personalizado = models.BooleanField(default=False)

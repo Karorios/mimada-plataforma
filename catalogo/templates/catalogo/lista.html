@@ -47,7 +47,10 @@
                 <div class="fila-precio">
                     <p class="precio">${{ producto.precio }}</p>
                     {% if producto.disponible %}
-                        <a href="#" class="btn-comprar">Comprar</a>
+                        <a href="{% url 'pedidos:crear_pedido' producto.id %}"
+                           class="btn-comprar">
+                            Comprar
+                        </a>
                     {% endif %}
                 </div>
             </div>

@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Resumen del pedido{% endblock %}
+
+{% block content %}
+
+<div class="contenedor">
+
+    <div class="card">
+
+        <h1>🌸 Resumen de tu pedido</h1>
+
+        <p class="subtitulo">
+            Revisa la información antes de confirmar tu compra.
+        </p>
+
+        <table class="tabla">
+
+            <tr>
+                <th>Producto</th>
+                <td>{{ producto }}</td>
+            </tr>
+
+            <tr>
+                <th>Tipo de entrega</th>
+                <td>{{ pedido.tipo_entrega }}</td>
+            </tr>
+
+            <tr>
+                <th>Dirección</th>
+                <td>{{ pedido.direccion }}</td>
+            </tr>
+
+            <tr>
+                <th>Barrio</th>
+                <td>{{ pedido.barrio }}</td>
+            </tr>
+
+            <tr>
+                <th>Ciudad</th>
+                <td>{{ pedido.ciudad }}</td>
+            </tr>
+
+            <tr>
+                <th>Fecha de entrega</th>
+                <td>{{ pedido.fecha_entrega }}</td>
+            </tr>
+
+            <tr>
+                <th>Hora</th>
+                <td>{{ pedido.hora_entrega }}</td>
+            </tr>
+
+            <tr>
+                <th>¿Es regalo?</th>
+                <td>
+                    {% if pedido.es_regalo %}
+                        Sí
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Destinatario</th>
+                <td>{{ pedido.nombre_destinatario }}</td>
+            </tr>
+
+            <tr>
+                <th>Teléfono</th>
+                <td>{{ pedido.telefono_destinatario }}</td>
+            </tr>
+
+            <tr>
+                <th>Mensaje</th>
+                <td>{{ pedido.mensaje }}</td>
+            </tr>
+
+        </table>
+
+        <div class="acciones">
+
+            <a href="javascript:history.back()" class="btn-secundario">
+                ← Modificar pedido
+            </a>
+
+            <a href="{% url 'pedidos:confirmar_pedido' %}" class="btn-principal">
+                📲 Confirmar pedido
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_style %}
+
+.contenedor{
+    max-width:900px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+h1{
+    color:#d63384;
+    margin-bottom:10px;
+}
+
+.subtitulo{
+    color:#777;
+    margin-bottom:30px;
+}
+
+.tabla{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.tabla th,
+.tabla td{
+    padding:14px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+
+.tabla th{
+    width:240px;
+    background:#fff7fa;
+    color:#d63384;
+}
+
+.acciones{
+    display:flex;
+    justify-content:space-between;
+    margin-top:35px;
+}
+
+.btn-principal{
+
+    background:#d63384;
+    color:white;
+    padding:14px 28px;
+    border-radius:8px;
+    font-weight:bold;
+
+}
+
+.btn-principal:hover{
+
+    background:#bb2d6b;
+
+}
+
+.btn-secundario{
+
+    background:#ececec;
+    color:#444;
+    padding:14px 28px;
+    border-radius:8px;
+
+}
+
+</style>
+
+{% endblock %}

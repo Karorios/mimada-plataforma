@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Resumen del pedido{% endblock %}
+
+{% block content %}
+
+<div class="contenedor">
+
+<h1>Resumen del pedido</h1>
+
+<p><strong>Tipo de entrega:</strong> {{ datos.tipo_entrega }}</p>
+
+<p><strong>¿Es regalo?:</strong>
+{% if datos.es_regalo %}
+Sí
+{% else %}
+No
+{% endif %}
+</p>
+
+<p><strong>Destinatario:</strong>
+{{ datos.nombre_destinatario }}
+</p>
+
+<p><strong>Teléfono:</strong>
+{{ datos.telefono_destinatario }}
+</p>
+
+<p><strong>Dirección:</strong>
+{{ datos.direccion }}
+</p>
+
+<p><strong>Barrio:</strong>
+{{ datos.barrio }}
+</p>
+
+<p><strong>Ciudad:</strong>
+{{ datos.ciudad }}
+</p>
+
+<p><strong>Fecha:</strong>
+{{ datos.fecha_entrega }}
+</p>
+
+<p><strong>Horario:</strong>
+{{ datos.hora_entrega }}
+</p>
+
+<p><strong>Mensaje:</strong></p>
+
+<div class="mensaje">
+
+{{ datos.mensaje }}
+
+</div>
+
+<hr>
+
+<form method="post">
+
+{% csrf_token %}
+
+<button>
+
+Confirmar pedido
+
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}
