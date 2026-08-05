@@ -1,6 +1,75 @@
-<!DOCTYPE html>
-<html>
-<body>
-    <h1>Pedidos Mimada - Próximamente 🌸</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Mimada - Mis pedidos{% endblock %}
+
+{% block content %}
+<section class="pedidos-header">
+    <h1>Mis pedidos</h1>
+    <p class="subtitulo">Historial de tus compras en Mimada</p>
+</section>
+
+<div class="galeria">
+    {% if pedidos %}
+    <div class="lista-pedidos">
+        {% for pedido in pedidos %}
+        <div class="tarjeta-pedido">
+            <div class="fila-top">
+                <span class="numero-pedido">Pedido #{{ pedido.id }}</span>
+                <span class="estado estado-{{ pedido.estado|lower }}">{{ pedido.get_estado_display }}</span>
+            </div>
+
+            {% for detalle in pedido.detalles.all %}
+                <div class="fila-producto">
+                    {% if detalle.producto.imagen %}
+                        <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}" class="img-producto-pedido">
+                    {% endif %}
+                    <p class="producto-linea">
+                        {{ detalle.cantidad }} x {{ detalle.producto.nombre|default:"Ramo personalizado" }}
+                    </p>
+                </div>
+            {% endfor %}
+
+            <div class="fila-info">
+                <span>{{ pedido.get_tipo_entrega_display }}</span>
+                <span>{{ pedido.fecha_entrega|date:"d/m/Y" }}</span>
+            </div>
+
+            <div class="fila-total">
+                <span>Total</span>
+                <strong>${{ pedido.total }}</strong>
+            </div>
+
+            {% if pedido.estado == "PENDIENTE" %}
+            <div class="fila-acciones-pedido">
+                <a href="{% url 'pedidos:editar_pedido' pedido.id %}" class="btn-editar-pedido">Editar</a>
+                <a href="{% url 'pedidos:cancelar_pedido' pedido.id %}" class="btn-cancelar-pedido" onclick="return confirm('¿Seguro que quieres cancelar este pedido?');">Cancelar</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="vacio">Aún no has hecho ningún pedido.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.pedidos-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.pedidos-header h1 { color: #c2185b; font-size: 1.8rem; }
+.galeria { max-width: 700px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+.lista-pedidos { display: flex; flex-direction: column; gap: 1rem; }
+.tarjeta-pedido { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; }
+.fila-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.numero-pedido { font-weight: 700; color: #333; font-size: 14px; }
+.estado { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #fdf0f5; color: #c2185b; }
+.producto-linea { font-size: 13px; color: #555; margin-bottom: 2px; }
+.fila-info { display: flex; justify-content: space-between; font-size: 12px; color: #999; margin-top: 8px; }
+.fila-total { display: flex; justify-content: space-between; font-size: 14px; color: #e91e8c; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f5f5f5; }
+.vacio { text-align: center; color: #aaa; font-size: 14px; padding: 2rem 0; }
+.fila-producto { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.img-producto-pedido { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+.fila-acciones-pedido { display: flex; gap: 8px; margin-top: 12px; }
+.btn-editar-pedido { flex: 1; text-align: center; background: #fdf0f5; color: #c2185b; border: 1px solid #f0c0d4; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; }
+.btn-cancelar-pedido { flex: 1; text-align: center; background: white; color: #d32f2f; border: 1px solid #f5c6c6; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; }
+{% endblock %}

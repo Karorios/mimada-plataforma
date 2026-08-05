@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada - Editar pedido{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <div class="card">
+        <h1>✏️ Editar pedido #{{ pedido.id }}</h1>
+        <p class="subtitulo">Puedes modificar los datos mientras tu pedido esté pendiente.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                {% if field.field.widget.input_type == "checkbox" %}
+                    <div class="campo campo-check">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                {% else %}
+                    <div class="campo">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endif %}
+                {% if field.errors %}
+                    <p class="error-campo">{{ field.errors.0 }}</p>
+                {% endif %}
+            {% endfor %}
+
+            <div class="acciones">
+                <a href="{% url 'pedidos:inicio' %}" class="btn-secundario">← Cancelar edición</a>
+                <button type="submit" class="btn-principal">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.contenedor{ max-width:600px; margin:40px auto; padding:20px; }
+.card{ background:white; border-radius:16px; padding:40px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+h1{ color:#d63384; margin-bottom:10px; }
+.subtitulo{ color:#777; margin-bottom:25px; }
+
+.campo{ margin-bottom: 1.1rem; }
+.campo label{ display:block; font-size:13px; font-weight:600; color:#c2185b; margin-bottom:5px; }
+.campo input[type="text"],
+.campo input[type="date"],
+.campo select,
+.campo textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #f0c0d4;
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+}
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus{
+    outline:none;
+    border-color:#e91e8c;
+}
+
+.campo-check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:1rem;
+}
+.campo-check label{ margin-bottom:0; font-weight:500; color:#555; }
+.campo-check input{ width:16px; height:16px; accent-color:#e91e8c; }
+
+.error-campo{ color:#d32f2f; font-size:12px; margin-top:-6px; margin-bottom:10px; }
+
+.acciones{ display:flex; justify-content:space-between; margin-top:25px; }
+.btn-principal{ background:#d63384; color:white; padding:14px 28px; border-radius:8px; font-weight:bold; border:none; cursor:pointer; }
+.btn-principal:hover{ background:#bb2d6b; }
+.btn-secundario{ background:#ececec; color:#444; padding:14px 28px; border-radius:8px; }
+{% endblock %}

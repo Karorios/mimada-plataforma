@@ -11,8 +11,10 @@ from .forms import PedidoForm
 from .models import Pedido, DetallePedido
 
 
+@login_required(login_url="usuarios:login")
 def inicio(request):
-    return render(request, "pedidos/inicio.html")
+    pedidos = request.user.pedidos.all().order_by("-fecha_creacion")
+    return render(request, "pedidos/inicio.html", {"pedidos": pedidos})
 PUNTOS_RECOGIDA = {
     "SOACHA": {
         "direccion": "Cl 15 #2B-11, Soacha",
@@ -247,3 +249,42 @@ Quedo atento(a) a la información para realizar el pago.
     request.session.pop("producto", None)
 
     return redirect(url)
+
+@login_required(login_url="usuarios:login")
+def editar_pedido(request, pedido_id):
+
+    pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+
+    if pedido.estado != "PENDIENTE":
+        return redirect("pedidos:inicio")
+
+    if request.method == "POST":
+        form = PedidoForm(request.POST, instance=pedido)
+        if form.is_valid():
+            pedido_editado = form.save(commit=False)
+            pedido_editado.valor_domicilio = calcular_domicilio(pedido_editado.tipo_entrega)
+            detalle = pedido_editado.detalles.first()
+            subtotal = detalle.subtotal if detalle else 0
+            pedido_editado.total = subtotal + pedido_editado.valor_domicilio
+            pedido_editado.save()
+            return redirect("pedidos:inicio")
+    else:
+        form = PedidoForm(instance=pedido)
+
+    return render(
+        request,
+        "pedidos/editar_pedido.html",
+        {"form": form, "pedido": pedido},
+    )
+
+
+@login_required(login_url="usuarios:login")
+def cancelar_pedido(request, pedido_id):
+
+    pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+
+    if pedido.estado == "PENDIENTE":
+        pedido.estado = "CANCELADO"
+        pedido.save()
+
+    return redirect("pedidos:inicio")

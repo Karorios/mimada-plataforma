@@ -29,4 +29,7 @@ urlpatterns = [
         views.confirmar_pedido,
         name="confirmar_pedido"
     ),
+path("editar/<int:pedido_id>/", views.editar_pedido, name="editar_pedido"),
+    path("cancelar/<int:pedido_id>/", views.cancelar_pedido, name="cancelar_pedido"),
+
 ]
