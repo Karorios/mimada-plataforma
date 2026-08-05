@@ -50,3 +50,37 @@ class RegistroForm(UserCreationForm):
         if Usuario.objects.filter(username=email).exists():
             raise forms.ValidationError('Ese correo ya tiene una cuenta asociada. Intenta iniciar sesión.')
         return email
+
+class EditarPerfilForm(forms.ModelForm):
+        email = forms.EmailField(
+            label='Correo electrónico',
+            widget=forms.EmailInput(attrs={'class': 'form-input'})
+        )
+        telefono = forms.CharField(
+            label='Teléfono',
+            required=False,
+            widget=forms.TextInput(attrs={'class': 'form-input'})
+        )
+
+        class Meta:
+            model = Usuario
+            fields = ['first_name', 'email', 'telefono']
+            widgets = {
+                'first_name': forms.TextInput(attrs={'class': 'form-input'}),
+            }
+            labels = {
+                'first_name': 'Nombre completo',
+            }
+
+        def clean_email(self):
+            email = self.cleaned_data.get('email')
+            if Usuario.objects.exclude(pk=self.instance.pk).filter(username=email).exists():
+                raise forms.ValidationError('Ese correo ya tiene una cuenta asociada.')
+            return email
+
+        def save(self, commit=True):
+            usuario = super().save(commit=False)
+            usuario.username = self.cleaned_data['email']
+            if commit:
+                usuario.save()
+            return usuario

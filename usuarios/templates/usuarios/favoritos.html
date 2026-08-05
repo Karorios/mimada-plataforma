@@ -21,10 +21,14 @@
             <div class="info-producto">
                 <h3>{{ producto.nombre }}</h3>
                 <p class="categoria-producto">{{ producto.categoria.get_nombre_display }}</p>
+
                 <div class="fila-precio">
-                    <p class="precio">${{ producto.precio }}</p>
-                    <a href="{% url 'usuarios:toggle_favorito' producto.id %}" class="btn-quitar-favorito">Quitar</a>
-                </div>
+    <p class="precio">${{ producto.precio }}</p>
+    <div class="acciones-favorito">
+        <a href="{% url 'pedidos:crear_pedido' producto.id %}" class="btn-comprar-favorito">Comprar</a>
+        <a href="{% url 'usuarios:toggle_favorito' producto.id %}" class="btn-quitar-favorito">Quitar</a>
+    </div>
+</div>
             </div>
         </div>
         {% endfor %}
@@ -33,6 +37,7 @@
         <p class="vacio">Aún no has marcado ningún producto como favorito.</p>
     {% endif %}
 </div>
+
 {% endblock %}
 
 {% block extra_style %}
@@ -47,6 +52,9 @@
 .info-producto h3 { font-size: 15px; color: #333; margin-bottom: 2px; }
 .categoria-producto { font-size: 12px; color: #aaa; margin-bottom: 8px; }
 .fila-precio { display: flex; align-items: center; justify-content: space-between; }
+.acciones-favorito { display: flex; gap: 6px; }
+.btn-comprar-favorito { background: #e91e8c; color: white; border: 1px solid #e91e8c; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+.btn-comprar-favorito:hover { background: #c2185b; }
 .precio { font-size: 15px; font-weight: 700; color: #e91e8c; }
 .btn-quitar-favorito { background: #fdf0f5; color: #c2185b; border: 1px solid #f0c0d4; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
 .vacio { text-align: center; color: #aaa; font-size: 14px; padding: 2rem 0; }

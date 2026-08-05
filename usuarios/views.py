@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from .forms import LoginForm, RegistroForm
 from django.contrib.auth.decorators import login_required
 from catalogo.models import Producto
 from django.shortcuts import render, redirect, get_object_or_404
+from .forms import LoginForm, RegistroForm, EditarPerfilForm
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -73,3 +73,16 @@ def toggle_favorito(request, producto_id):
     else:
         request.user.favoritos.add(producto)
     return redirect(request.META.get('HTTP_REFERER', 'usuarios:favoritos'))
+
+@login_required(login_url='usuarios:login')
+def mi_cuenta_view(request):
+    if request.method == 'POST':
+        form = EditarPerfilForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tus datos se actualizaron correctamente.')
+            return redirect('usuarios:mi_cuenta')
+    else:
+        form = EditarPerfilForm(instance=request.user)
+
+    return render(request, 'usuarios/mi_cuenta.html', {'form': form})
