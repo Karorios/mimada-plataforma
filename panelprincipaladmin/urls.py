@@ -5,4 +5,5 @@ app_name = 'panelprincipaladmin'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+
 ]

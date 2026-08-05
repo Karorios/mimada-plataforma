@@ -228,11 +228,14 @@
         </div>
 
         <nav>
-            <a href="{% url 'panelprincipaladmin:dashboard' %}" class="nav-link">
+            <a href="{% url 'home' %}" class="nav-link">
                 <span class="nav-icon">🏠</span> Inicio
             </a>
             <a href="{% url 'inventario:dashboard' %}" class="nav-link">
                 <span class="nav-icon">📦</span> Inventario
+            </a>
+            <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
+                <span class="nav-icon">🛍️</span> Catálogo
             </a>
             <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
                 <span class="nav-icon">🧾</span> Pedidos

@@ -148,7 +148,9 @@
                 <h2>Productos del catálogo</h2>
                 <a class="btn-nuevo" href="{% url 'catalogo:crear_producto' %}">+ Nuevo producto</a>
             </div>
-
+<a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
+    <span class="nav-icon">🌸</span> Catálogo
+</a>
             {% if productos %}
             <table>
                 <thead>
