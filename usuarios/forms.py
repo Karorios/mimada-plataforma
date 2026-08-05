@@ -44,3 +44,9 @@ class RegistroForm(UserCreationForm):
     class Meta:
         model = Usuario
         fields = ['first_name', 'email', 'telefono', 'password1', 'password2']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Usuario.objects.filter(username=email).exists():
+            raise forms.ValidationError('Ese correo ya tiene una cuenta asociada. Intenta iniciar sesión.')
+        return email

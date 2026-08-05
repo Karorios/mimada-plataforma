@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mimada Admin - Pedidos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
+        .sidebar {
+            width: 220px; background: white; border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
+        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
+        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: #fdf0f5; }
+        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto; display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
+        }
+        .avatar-mini {
+            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;
+        }
+        .user-info-mini p:first-child { font-weight: 600; color: #333; }
+        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+
+        .main { flex: 1; padding: 2rem; }
+        .main-header h2 { font-size: 26px; color: #333; }
+        .main-header p { color: #999; font-size: 14px; margin-top: 4px; margin-bottom: 1.2rem; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 1.2rem; border-bottom: 1px solid #f5d5e3; }
+        .tab {
+            padding: 8px 16px; font-size: 13px; color: #999; text-decoration: none;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active { color: #c2185b; font-weight: 600; border-bottom-color: #c2185b; }
+
+        .toolbar { margin-bottom: 1.2rem; }
+        .search-box {
+            border: 1px solid #f5d5e3; border-radius: 20px; padding: 10px 16px;
+            font-size: 14px; width: 100%; max-width: 320px; outline: none;
+        }
+
+        .messages { margin-bottom: 1rem; }
+        .message-success {
+            background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+            border-radius: 8px; padding: 10px 14px; font-size: 13px;
+        }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 14px; overflow: hidden; border: 1px solid #f5d5e3; }
+        thead { background: #fdf5f9; }
+        th { text-align: left; padding: 12px 16px; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.04em; }
+        td { padding: 14px 16px; font-size: 14px; color: #444; border-top: 1px solid #f5f5f5; }
+        .cliente-cell { display: flex; align-items: center; gap: 8px; }
+        .cliente-avatar {
+            width: 30px; height: 30px; border-radius: 50%; background: #f8bbd0;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; color: #c2185b; font-size: 12px;
+        }
+        .badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
+        .badge.PENDIENTE { background: #fff3e0; color: #e65100; }
+        .badge.CONFIRMADO { background: #e3f2fd; color: #1565c0; }
+        .badge.EN_PROCESO { background: #e1f5fe; color: #0277bd; }
+        .badge.LISTO { background: #f3e5f5; color: #7b1fa2; }
+        .badge.ENTREGADO { background: #e8f5e9; color: #2e7d32; }
+        .badge.CANCELADO { background: #ffebee; color: #c62828; }
+        .ver-link { color: #c2185b; text-decoration: none; font-size: 16px; }
+
+        .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 1rem; }
+        .pagination a, .pagination span {
+            padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; color: #666;
+            border: 1px solid #f5d5e3;
+        }
+        .pagination .current { background: #c2185b; color: white; border-color: #c2185b; }
+        .mostrando { color: #999; font-size: 12px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1>Mimada Admin</h1>
+            <p>GESTIÓN FLORAL</p>
+        </div>
+        <nav>
+            <a href="{% url 'panelprincipaladmin:dashboard' %}" class="nav-link"><span class="nav-icon">🏠</span> Inicio</a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon">📦</span> Inventario</a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link active"><span class="nav-icon">🧾</span> Pedidos</a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon">💰</span> Finanzas</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
+            <div class="user-info-mini">
+                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+                <p>Admin Principal</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="main-header">
+            <h2>Gestión de Pedidos</h2>
+            <p>Revisa, aprueba y da seguimiento a los pedidos de tus clientas.</p>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}<div class="message-success">{{ message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="tabs">
+            {% for valor, etiqueta in tabs %}
+            <a href="?tab={{ valor }}" class="tab {% if tab_activo == valor %}active{% endif %}">{{ etiqueta }}</a>
+            {% endfor %}
+        </div>
+
+        <form method="get" class="toolbar">
+            <input type="hidden" name="tab" value="{{ tab_activo }}">
+            <input type="text" name="q" class="search-box" placeholder="🔍 Buscar por cliente o número..." value="{{ query }}">
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Pedido</th>
+                    <th>Cliente</th>
+                    <th>Entrega</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in page_obj %}
+                <tr>
+                    <td>#MD-{{ pedido.id }}</td>
+                    <td class="cliente-cell">
+                        <div class="cliente-avatar">{{ pedido.cliente.first_name|default:pedido.cliente.username|slice:":1"|upper }}</div>
+                        {{ pedido.cliente.get_full_name|default:pedido.cliente.username }}
+                    </td>
+                    <td>
+                        {{ pedido.get_tipo_entrega_display }}
+                        {% if pedido.fecha_entrega %}<br><span style="color:#999; font-size:12px;">{{ pedido.fecha_entrega|date:"d M" }} {{ pedido.hora_entrega }}</span>{% endif %}
+                    </td>
+                    <td>${{ pedido.total|floatformat:0 }}</td>
+                    <td>{{ pedido.fecha_creacion|date:"d M, H:i" }}</td>
+                    <td><span class="badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
+                    <td><a href="{% url 'pedidosadmin:detalle' pedido.pk %}" class="ver-link">👁️</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; color:#999; padding:2rem;">No hay pedidos todavía.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="mostrando">Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ total_pedidos }} pedidos</p>
+
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.previous_page_number }}">‹</a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                <span class="current">{{ num }}</span>
+                {% else %}
+                <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.next_page_number }}">›</a>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
