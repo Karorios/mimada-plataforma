@@ -13,7 +13,24 @@ from .models import Pedido, DetallePedido
 
 def inicio(request):
     return render(request, "pedidos/inicio.html")
+PUNTOS_RECOGIDA = {
+    "SOACHA": {
+        "direccion": "Cl 15 #2B-11, Soacha",
+        "horario": "Lun-Vie: 8:00 AM - 7:00 PM · Dom y festivos: 9:00 AM - 6:00 PM",
+    },
+    "PLAZA": {
+        "direccion": "Centro Comercial Plaza de las Américas",
+        "horario": "Lunes, martes y jueves",
+    },
+}
 
+VALOR_DOMICILIO = 8000
+
+
+def calcular_domicilio(tipo_entrega):
+    if tipo_entrega == "DOMICILIO":
+        return VALOR_DOMICILIO
+    return 0
 
 def crear_detalle(request):
 
@@ -58,7 +75,6 @@ def crear_pedido(request, producto_id):
 
             datos = form.cleaned_data.copy()
 
-            # La sesión no puede guardar objetos date
             datos["fecha_entrega"] = datos["fecha_entrega"].isoformat()
 
             request.session["pedido"] = datos
@@ -91,12 +107,27 @@ def resumen(request):
 
     producto = get_object_or_404(Producto, pk=producto_id)
 
+    tipo_entrega = datos.get("tipo_entrega")
+
+    # Texto legible para tipo_entrega (dict no tiene get_FOO_display)
+    tipo_entrega_display = dict(Pedido.TIPO_ENTREGA).get(
+        tipo_entrega, tipo_entrega
+    )
+
+    valor_domicilio = calcular_domicilio(tipo_entrega)
+    total = producto.precio + valor_domicilio
+
     return render(
         request,
         "pedidos/resumen.html",
         {
             "datos": datos,
             "producto": producto,
+            "tipo_entrega_display": tipo_entrega_display,
+            "es_domicilio": tipo_entrega == "DOMICILIO",
+            "punto_recogida": PUNTOS_RECOGIDA.get(tipo_entrega),
+            "valor_domicilio": valor_domicilio,
+            "total": total,
         },
     )
 
@@ -112,6 +143,9 @@ def confirmar_pedido(request):
     producto_id = request.session.get("producto")
 
     producto = get_object_or_404(Producto, pk=producto_id)
+
+    valor_domicilio = calcular_domicilio(datos["tipo_entrega"])
+    total = producto.precio + valor_domicilio
 
     pedido = Pedido.objects.create(
 
@@ -131,16 +165,11 @@ def confirmar_pedido(request):
         ciudad=datos["ciudad"],
         referencia=datos["referencia"],
 
-        # Convertimos nuevamente el texto a fecha
         fecha_entrega=date.fromisoformat(datos["fecha_entrega"]),
-
         hora_entrega=datos["hora_entrega"],
-
-        valor_domicilio=0,
-
-        total=producto.precio,
+        valor_domicilio=valor_domicilio,
+        total=total,
     )
-
     DetallePedido.objects.create(
         pedido=pedido,
         producto=producto,
@@ -148,7 +177,24 @@ def confirmar_pedido(request):
         precio_unitario=producto.precio,
         subtotal=producto.precio,
     )
+    if datos["tipo_entrega"] == "DOMICILIO":
+        bloque_entrega = f"""Dirección:
+    {pedido.direccion}
 
+    Barrio:
+    {pedido.barrio}
+
+    Ciudad:
+    {pedido.ciudad}"""
+    else:
+        punto = PUNTOS_RECOGIDA.get(pedido.tipo_entrega, {})
+        bloque_entrega = f"""Punto de recogida:
+    {punto.get('direccion', '')}
+
+    Horario:
+    {punto.get('horario', '')}"""
+
+    domicilio_texto = "Gratis" if pedido.valor_domicilio == 0 else f"${pedido.valor_domicilio}"
     mensaje = f"""
 🌸 *Nuevo pedido Mimada*
 
@@ -156,21 +202,19 @@ Pedido No: {pedido.id}
 
 Producto:
 {producto.nombre}
-
-Valor:
+Valor producto:
 ${producto.precio}
+
+Domicilio:
+{domicilio_texto}
+
+Total:
+${pedido.total}
 
 Tipo de entrega:
 {pedido.get_tipo_entrega_display()}
 
-Dirección:
-{pedido.direccion}
-
-Barrio:
-{pedido.barrio}
-
-Ciudad:
-{pedido.ciudad}
+{bloque_entrega}
 
 Fecha:
 {pedido.fecha_entrega}

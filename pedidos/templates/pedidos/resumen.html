@@ -17,66 +17,92 @@
         <table class="tabla">
 
             <tr>
-                <th>Producto</th>
-                <td>{{ producto }}</td>
-            </tr>
+    <th>Tipo de entrega</th>
+    <td>{{ tipo_entrega_display }}</td>
+</tr>
 
-            <tr>
-                <th>Tipo de entrega</th>
-                <td>{{ pedido.tipo_entrega }}</td>
-            </tr>
+{% if es_domicilio %}
 
-            <tr>
-                <th>Dirección</th>
-                <td>{{ pedido.direccion }}</td>
-            </tr>
+    <tr>
+        <th>Dirección</th>
+        <td>{{ datos.direccion }}</td>
+    </tr>
 
-            <tr>
-                <th>Barrio</th>
-                <td>{{ pedido.barrio }}</td>
-            </tr>
+    <tr>
+        <th>Barrio</th>
+        <td>{{ datos.barrio }}</td>
+    </tr>
 
-            <tr>
-                <th>Ciudad</th>
-                <td>{{ pedido.ciudad }}</td>
-            </tr>
+    <tr>
+        <th>Ciudad</th>
+        <td>{{ datos.ciudad }}</td>
+    </tr>
 
-            <tr>
-                <th>Fecha de entrega</th>
-                <td>{{ pedido.fecha_entrega }}</td>
-            </tr>
+{% else %}
 
-            <tr>
-                <th>Hora</th>
-                <td>{{ pedido.hora_entrega }}</td>
-            </tr>
+    <tr>
+        <th>Punto de recogida</th>
+        <td>{{ punto_recogida.direccion }}</td>
+    </tr>
 
-            <tr>
-                <th>¿Es regalo?</th>
-                <td>
-                    {% if pedido.es_regalo %}
-                        Sí
-                    {% else %}
-                        No
-                    {% endif %}
-                </td>
-            </tr>
+    <tr>
+        <th>Horario de atención</th>
+        <td>{{ punto_recogida.horario }}</td>
+    </tr>
 
-            <tr>
-                <th>Destinatario</th>
-                <td>{{ pedido.nombre_destinatario }}</td>
-            </tr>
+{% endif %}
 
-            <tr>
-                <th>Teléfono</th>
-                <td>{{ pedido.telefono_destinatario }}</td>
-            </tr>
+<tr>
+    <th>Fecha de entrega</th>
+    <td>{{ datos.fecha_entrega }}</td>
+</tr>
 
-            <tr>
-                <th>Mensaje</th>
-                <td>{{ pedido.mensaje }}</td>
-            </tr>
+<tr>
+    <th>Hora</th>
+    <td>{{ datos.hora_entrega }}</td>
+</tr>
 
+<tr>
+    <th>¿Es regalo?</th>
+    <td>
+        {% if datos.es_regalo %}
+            Sí
+        {% else %}
+            No
+        {% endif %}
+    </td>
+</tr>
+
+<tr>
+    <th>Destinatario</th>
+    <td>{{ datos.nombre_destinatario }}</td>
+</tr>
+
+<tr>
+    <th>Teléfono</th>
+    <td>{{ datos.telefono_destinatario }}</td>
+</tr>
+
+<tr>
+    <th>Mensaje</th>
+    <td>{{ datos.mensaje }}</td>
+</tr>
+    <tr>
+    <th>Precio del producto</th>
+    <td>${{ producto.precio }}</td>
+</tr>
+
+{% if es_domicilio %}
+<tr>
+    <th>Valor domicilio</th>
+    <td>${{ valor_domicilio }}</td>
+</tr>
+{% endif %}
+
+<tr>
+    <th>Total</th>
+    <td><strong>${{ total }}</strong></td>
+</tr>
         </table>
 
         <div class="acciones">

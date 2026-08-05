@@ -71,15 +71,20 @@ class PedidoForm(forms.ModelForm):
         )
 
     def clean_fecha_entrega(self):
-
         fecha = self.cleaned_data["fecha_entrega"]
-
         fecha_minima = date.today() + timedelta(days=2)
-
         if fecha < fecha_minima:
-
             raise forms.ValidationError(
                 "Los pedidos deben realizarse con mínimo 2 días de anticipación."
             )
-
         return fecha
+
+    def clean(self):
+        datos = super().clean()
+        tipo_entrega = datos.get("tipo_entrega")
+        if tipo_entrega == "DOMICILIO":
+            if not datos.get("direccion"):
+                self.add_error("direccion", "La dirección es obligatoria para domicilio.")
+            if not datos.get("barrio"):
+                self.add_error("barrio", "El barrio es obligatorio para domicilio.")
+        return datos

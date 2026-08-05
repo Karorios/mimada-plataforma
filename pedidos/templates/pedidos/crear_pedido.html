@@ -35,10 +35,7 @@
     </div>
 
 </div>
-
 {% endblock %}
-
-
 {% block extra_style %}
 
 .contenedor{
@@ -136,4 +133,88 @@ input[type="checkbox"]{
     margin:5px 0;
 }
 
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const tipoEntrega = document.getElementById("id_tipo_entrega");
+
+    // Campos que solo aplican si es domicilio
+    const idsDomicilio = ["id_direccion", "id_barrio", "id_referencia"];
+
+    const infoEntrega = {
+        DOMICILIO: "🚚 Entrega a domicilio. Costo: $8.000.",
+        SOACHA: "📍 Recoger en: Cl 15 #2B-11, Soacha.<br>Horario: Lun-Vie 8:00 AM - 7:00 PM · Dom y festivos 9:00 AM - 6:00 PM.<br>Sin costo adicional.",
+        PLAZA: "📍 Recoger en: Centro Comercial Plaza de las Américas.<br>Días disponibles: Lunes, martes y jueves.<br>Sin costo adicional.",
+    };
+
+    function togglerCamposDomicilio() {
+
+        const esDomicilio = tipoEntrega.value === "DOMICILIO";
+
+        idsDomicilio.forEach(function (id) {
+            const campo = document.getElementById(id);
+            if (campo) {
+                const contenedor = campo.closest("p");
+                if (contenedor) {
+                    contenedor.style.display = esDomicilio ? "block" : "none";
+                }
+            }
+        });
+    }
+
+    function mostrarInfoEntrega() {
+
+        let caja = document.getElementById("info-entrega");
+
+        if (!caja) {
+            caja = document.createElement("div");
+            caja.id = "info-entrega";
+            caja.style.background = "#fff7fa";
+            caja.style.border = "1px solid #f3d8e3";
+            caja.style.borderRadius = "8px";
+            caja.style.padding = "12px 14px";
+            caja.style.marginTop = "-8px";
+            caja.style.marginBottom = "18px";
+            caja.style.fontSize = "13px";
+            caja.style.color = "#c2185b";
+
+            const contenedorTipoEntrega = tipoEntrega.closest("p");
+            contenedorTipoEntrega.insertAdjacentElement("afterend", caja);
+        }
+
+        caja.innerHTML = infoEntrega[tipoEntrega.value] || "";
+    }
+
+    function agregarNotaMensaje() {
+
+        const campoMensaje = document.getElementById("id_mensaje");
+
+        if (campoMensaje && !document.getElementById("nota-mensaje")) {
+
+            const nota = document.createElement("small");
+            nota.id = "nota-mensaje";
+            nota.className = "helptext";
+            nota.textContent = "Este mensaje aparece en la tarjeta del pedido y no tiene ningún costo adicional.";
+
+            campoMensaje.insertAdjacentElement("afterend", nota);
+        }
+    }
+
+    if (tipoEntrega) {
+        togglerCamposDomicilio();
+        mostrarInfoEntrega();
+        agregarNotaMensaje();
+
+        tipoEntrega.addEventListener("change", function () {
+            togglerCamposDomicilio();
+            mostrarInfoEntrega();
+        });
+    }
+
+});
+</script>
 {% endblock %}
