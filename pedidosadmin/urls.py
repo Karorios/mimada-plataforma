@@ -6,4 +6,5 @@ app_name = 'pedidosadmin'
 urlpatterns = [
     path('', views.lista_pedidos, name='dashboard'),
     path('<int:pk>/', views.detalle_pedido, name='detalle'),
+    path('<int:pk>/accion/', views.accion_pedido, name='accion'),
 ]

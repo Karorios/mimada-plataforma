@@ -39,25 +39,30 @@ def lista_pedidos(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
+    pedido_detalle = None
+    ver_id = request.GET.get('ver')
+    if ver_id:
+        pedido_detalle = get_object_or_404(
+            Pedido.objects.select_related('cliente').prefetch_related(
+                'detalles__producto', 'detalles__configuracion'
+            ),
+            pk=ver_id
+        )
+
     context = {
         'page_obj': page_obj,
         'tabs': ESTADO_TABS,
         'tab_activo': tab_activo,
         'query': query or '',
         'total_pedidos': paginator.count,
+        'pedido_detalle': pedido_detalle,
     }
     return render(request, 'pedidosadmin/lista.html', context)
 
 
 @login_required
-def detalle_pedido(request, pk):
-    pedido = get_object_or_404(
-        Pedido.objects.select_related('cliente').prefetch_related(
-            'detalles__producto', 'detalles__configuracion'
-        ),
-        pk=pk
-    )
-
+def accion_pedido(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
     if request.method == 'POST':
         accion = request.POST.get('accion')
         transiciones = {
@@ -70,6 +75,20 @@ def detalle_pedido(request, pk):
             pedido.estado = transiciones[accion]
             pedido.save()
             messages.success(request, f'Pedido #{pedido.id} actualizado.')
-        return redirect('pedidosadmin:detalle', pk=pedido.pk)
 
+        next_url = request.POST.get('next')
+        if next_url:
+            return redirect(next_url)
+    return redirect('pedidosadmin:dashboard')
+
+
+# Se mantiene por si acaso, como página completa alternativa
+@login_required
+def detalle_pedido(request, pk):
+    pedido = get_object_or_404(
+        Pedido.objects.select_related('cliente').prefetch_related(
+            'detalles__producto', 'detalles__configuracion'
+        ),
+        pk=pk
+    )
     return render(request, 'pedidosadmin/detalle.html', {'pedido': pedido})

@@ -2,181 +2,138 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mimada Admin - Pedidos</title>
+    <title>Mimada Admin - Detalle de Pedido</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
-        .sidebar {
-            width: 220px; background: white; border-right: 1px solid #f5d5e3;
-            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
-        }
-        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
-        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
-        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
-        .nav-link {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
-            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
-        }
-        .nav-link:hover { background: #fdf0f5; }
-        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
-        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-        .sidebar-footer {
-            margin-top: auto; display: flex; align-items: center; gap: 10px;
-            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
-        }
-        .avatar-mini {
-            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;
-        }
-        .user-info-mini p:first-child { font-weight: 600; color: #333; }
-        .user-info-mini p:last-child { color: #999; font-size: 11px; }
-
-        .main { flex: 1; padding: 2rem; }
-        .main-header h2 { font-size: 26px; color: #333; }
-        .main-header p { color: #999; font-size: 14px; margin-top: 4px; margin-bottom: 1.2rem; }
-
-        .tabs { display: flex; gap: 6px; margin-bottom: 1.2rem; border-bottom: 1px solid #f5d5e3; }
-        .tab {
-            padding: 8px 16px; font-size: 13px; color: #999; text-decoration: none;
-            border-bottom: 2px solid transparent;
-        }
-        .tab.active { color: #c2185b; font-weight: 600; border-bottom-color: #c2185b; }
-
-        .toolbar { margin-bottom: 1.2rem; }
-        .search-box {
-            border: 1px solid #f5d5e3; border-radius: 20px; padding: 10px 16px;
-            font-size: 14px; width: 100%; max-width: 320px; outline: none;
-        }
-
-        .messages { margin-bottom: 1rem; }
-        .message-success {
-            background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
-            border-radius: 8px; padding: 10px 14px; font-size: 13px;
-        }
-
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 14px; overflow: hidden; border: 1px solid #f5d5e3; }
-        thead { background: #fdf5f9; }
-        th { text-align: left; padding: 12px 16px; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.04em; }
-        td { padding: 14px 16px; font-size: 14px; color: #444; border-top: 1px solid #f5f5f5; }
-        .cliente-cell { display: flex; align-items: center; gap: 8px; }
-        .cliente-avatar {
-            width: 30px; height: 30px; border-radius: 50%; background: #f8bbd0;
-            display: flex; align-items: center; justify-content: center; font-weight: 700; color: #c2185b; font-size: 12px;
-        }
-        .badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; padding: 2rem; }
+        .back-link { color: #e91e8c; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-block; margin-bottom: 1rem; }
+        .card { background: white; border-radius: 16px; border: 1px solid #f0c0d4; padding: 1.5rem; max-width: 480px; margin: 0 auto; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .card-header h2 { font-size: 20px; color: #333; }
+        .badge { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 12px; }
         .badge.PENDIENTE { background: #fff3e0; color: #e65100; }
         .badge.CONFIRMADO { background: #e3f2fd; color: #1565c0; }
         .badge.EN_PROCESO { background: #e1f5fe; color: #0277bd; }
         .badge.LISTO { background: #f3e5f5; color: #7b1fa2; }
         .badge.ENTREGADO { background: #e8f5e9; color: #2e7d32; }
         .badge.CANCELADO { background: #ffebee; color: #c62828; }
-        .ver-link { color: #c2185b; text-decoration: none; font-size: 16px; }
-
-        .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 1rem; }
-        .pagination a, .pagination span {
-            padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; color: #666;
-            border: 1px solid #f5d5e3;
+        .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
+        .total-row .orden { font-size: 22px; font-weight: 700; color: #333; }
+        .total-row .valor { font-size: 20px; font-weight: 700; color: #c2185b; }
+        h3.seccion { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #999; margin: 1rem 0 8px; }
+        .cliente-box { background: #fdf5f9; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+        .cliente-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #f8bbd0;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; color: #c2185b;
         }
-        .pagination .current { background: #c2185b; color: white; border-color: #c2185b; }
-        .mostrando { color: #999; font-size: 12px; margin-top: 8px; }
+        .cliente-box .nombre { font-weight: 700; color: #333; font-size: 14px; }
+        .cliente-box .contacto { font-size: 12px; color: #999; }
+        .producto-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fdf5f9; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+        }
+        .producto-row .nombre { font-size: 13px; font-weight: 600; color: #333; }
+        .producto-row .detalle { font-size: 11px; color: #999; }
+        .entrega-info { display: flex; gap: 2rem; font-size: 13px; color: #444; }
+        .entrega-info div span { display: block; font-size: 11px; color: #999; text-transform: uppercase; }
+        .direccion { font-size: 13px; color: #444; margin-top: 8px; }
+        .nota-cliente {
+            background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px;
+            padding: 10px 12px; font-size: 13px; color: #6d4c00; margin-top: 1rem;
+        }
+        .acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 1.5rem; }
+        .btn-primary { background: #c2185b; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-secondary { background: white; color: #c2185b; border: 1px solid #c2185b; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: white; color: #c62828; border: 1px solid #c62828; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <h1>Mimada Admin</h1>
-            <p>GESTIÓN FLORAL</p>
+    <a href="{% url 'pedidosadmin:dashboard' %}" class="back-link">← Volver a Pedidos</a>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Detalle de Pedido</h2>
+            <span class="badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span>
         </div>
-        <nav>
-            <a href="{% url 'panelprincipaladmin:dashboard' %}" class="nav-link"><span class="nav-icon">🏠</span> Inicio</a>
-            <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon">📦</span> Inventario</a>
-            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link active"><span class="nav-icon">🧾</span> Pedidos</a>
-            <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon">💰</span> Finanzas</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
-            <div class="user-info-mini">
-                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
-                <p>Admin Principal</p>
+
+        <div class="total-row">
+            <span class="orden">order-{{ pedido.id }}</span>
+            <span class="valor">${{ pedido.total|floatformat:0 }}</span>
+        </div>
+
+        <h3 class="seccion">Cliente</h3>
+        <div class="cliente-box">
+            <div class="cliente-avatar">{{ pedido.cliente.first_name|default:pedido.cliente.username|slice:":1"|upper }}</div>
+            <div>
+                <div class="nombre">{{ pedido.cliente.get_full_name|default:pedido.cliente.username }}</div>
+                <div class="contacto">{{ pedido.cliente.email }} · {{ pedido.cliente.telefono|default:"Sin teléfono" }}</div>
             </div>
         </div>
-    </aside>
 
-    <main class="main">
-        <div class="main-header">
-            <h2>Gestión de Pedidos</h2>
-            <p>Revisa, aprueba y da seguimiento a los pedidos de tus clientas.</p>
-        </div>
-
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}<div class="message-success">{{ message }}</div>{% endfor %}
+        {% if pedido.es_regalo %}
+        <h3 class="seccion">Es un regalo {% if pedido.entrega_anonima %}(entrega anónima){% endif %}</h3>
+        <div class="direccion">
+            Destinatario: {{ pedido.nombre_destinatario|default:"—" }}<br>
+            Teléfono: {{ pedido.telefono_destinatario|default:"—" }}
         </div>
         {% endif %}
 
-        <div class="tabs">
-            {% for valor, etiqueta in tabs %}
-            <a href="?tab={{ valor }}" class="tab {% if tab_activo == valor %}active{% endif %}">{{ etiqueta }}</a>
-            {% endfor %}
+        <h3 class="seccion">Productos adquiridos</h3>
+        {% for detalle in pedido.detalles.all %}
+        <div class="producto-row">
+            <div>
+                <div class="nombre">{{ detalle.producto.nombre|default:"Ramo personalizado" }}</div>
+                <div class="detalle">Cantidad: {{ detalle.cantidad }}
+                    {% if detalle.es_personalizado and detalle.configuracion %}
+                        · {{ detalle.configuracion.cantidad_rosas }} rosas
+                        {% if detalle.configuracion.color_rosa %}({{ detalle.configuracion.color_rosa.nombre }}){% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div>${{ detalle.subtotal|floatformat:0 }}</div>
         </div>
+        {% empty %}
+        <p style="color:#999; font-size:13px;">Sin productos registrados.</p>
+        {% endfor %}
 
-        <form method="get" class="toolbar">
-            <input type="hidden" name="tab" value="{{ tab_activo }}">
-            <input type="text" name="q" class="search-box" placeholder="🔍 Buscar por cliente o número..." value="{{ query }}">
-        </form>
+        <h3 class="seccion">Información de entrega</h3>
+        <div class="entrega-info">
+            <div><span>Tipo</span>{{ pedido.get_tipo_entrega_display }}</div>
+            <div><span>Fecha</span>{{ pedido.fecha_entrega|date:"d/m/Y"|default:"Sin definir" }}</div>
+            <div><span>Horario</span>{{ pedido.hora_entrega|default:"Sin definir" }}</div>
+        </div>
+        {% if pedido.tipo_entrega == 'DOMICILIO' %}
+        <div class="direccion">
+            📍 {{ pedido.direccion }}{% if pedido.barrio %}, {{ pedido.barrio }}{% endif %}, {{ pedido.ciudad }}
+            {% if pedido.referencia %}<br><span style="color:#999;">Ref: {{ pedido.referencia }}</span>{% endif %}
+        </div>
+        {% endif %}
 
-        <table>
-            <thead>
-                <tr>
-                    <th>N° Pedido</th>
-                    <th>Cliente</th>
-                    <th>Entrega</th>
-                    <th>Total</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pedido in page_obj %}
-                <tr>
-                    <td>#MD-{{ pedido.id }}</td>
-                    <td class="cliente-cell">
-                        <div class="cliente-avatar">{{ pedido.cliente.first_name|default:pedido.cliente.username|slice:":1"|upper }}</div>
-                        {{ pedido.cliente.get_full_name|default:pedido.cliente.username }}
-                    </td>
-                    <td>
-                        {{ pedido.get_tipo_entrega_display }}
-                        {% if pedido.fecha_entrega %}<br><span style="color:#999; font-size:12px;">{{ pedido.fecha_entrega|date:"d M" }} {{ pedido.hora_entrega }}</span>{% endif %}
-                    </td>
-                    <td>${{ pedido.total|floatformat:0 }}</td>
-                    <td>{{ pedido.fecha_creacion|date:"d M, H:i" }}</td>
-                    <td><span class="badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
-                    <td><a href="{% url 'pedidosadmin:detalle' pedido.pk %}" class="ver-link">👁️</a></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" style="text-align:center; color:#999; padding:2rem;">No hay pedidos todavía.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% if pedido.mensaje %}
+        <div class="nota-cliente">💌 "{{ pedido.mensaje }}"</div>
+        {% endif %}
 
-        <p class="mostrando">Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ total_pedidos }} pedidos</p>
-
-        <div class="pagination">
-            {% if page_obj.has_previous %}
-            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.previous_page_number }}">‹</a>
+        <div class="acciones">
+            {% if pedido.estado == 'PENDIENTE' or pedido.estado == 'CONFIRMADO' %}
+            <form method="post"><input type="hidden" name="accion" value="aprobar">{% csrf_token %}
+                <button type="submit" class="btn-primary" style="width:100%;">Aprobar y Enviar a Producción</button>
+            </form>
+            {% elif pedido.estado == 'EN_PROCESO' %}
+            <form method="post"><input type="hidden" name="accion" value="marcar_listo">{% csrf_token %}
+                <button type="submit" class="btn-primary" style="width:100%;">Marcar como Listo</button>
+            </form>
+            {% elif pedido.estado == 'LISTO' %}
+            <form method="post"><input type="hidden" name="accion" value="entregar">{% csrf_token %}
+                <button type="submit" class="btn-primary" style="width:100%;">Marcar como Entregado</button>
+            </form>
             {% endif %}
-            {% for num in page_obj.paginator.page_range %}
-                {% if num == page_obj.number %}
-                <span class="current">{{ num }}</span>
-                {% else %}
-                <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ num }}">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-            {% if page_obj.has_next %}
-            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.next_page_number }}">›</a>
+
+            {% if pedido.estado != 'ENTREGADO' and pedido.estado != 'CANCELADO' %}
+            <form method="post"><input type="hidden" name="accion" value="cancelar">{% csrf_token %}
+                <button type="submit" class="btn-danger" style="width:100%;">Cancelar Pedido</button>
+            </form>
             {% endif %}
         </div>
-    </main>
+    </div>
 </body>
 </html>

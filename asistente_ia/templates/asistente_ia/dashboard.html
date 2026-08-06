@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mimada Admin - Asistente IA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
+        .sidebar {
+            width: 220px; background: white; border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
+        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
+        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: #fdf0f5; }
+        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto; display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
+        }
+        .avatar-mini {
+            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;
+        }
+        .user-info-mini p:first-child { font-weight: 600; color: #333; }
+        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+
+        .main { flex: 1; padding: 2rem; display: flex; align-items: center; justify-content: center; }
+        .empty-state { text-align: center; max-width: 380px; }
+        .empty-state .icono { font-size: 48px; margin-bottom: 1rem; }
+        .empty-state h2 { color: #333; font-size: 20px; margin-bottom: 8px; }
+        .empty-state p { color: #999; font-size: 14px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1>Mimada Admin</h1>
+            <p>GESTIÓN FLORAL</p>
+        </div>
+        <nav>
+            <a href="{% url 'home' %}" class="nav-link">
+                <span class="nav-icon"></span> Inicio
+            </a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Inventario
+            </a>
+            <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
+                <span class="nav-icon">️</span> Catálogo
+            </a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Pedidos
+            </a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Finanzas
+            </a>
+            <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link active">
+                <span class="nav-icon"></span> Asistente IA
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
+            <div class="user-info-mini">
+                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+                <p>Admin Principal</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="empty-state">
+            <div class="icono">🤖🌸</div>
+            <h2>Asistente IA — Próximamente</h2>
+            <p>Aquí vas a ver predicciones de ventas y alertas inteligentes de inventario basadas en tu historial real, para que nunca te quedes sin stock antes de una fecha comercial importante.</p>
+        </div>
+    </main>
+</body>
+</html>

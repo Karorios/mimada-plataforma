@@ -79,6 +79,56 @@
         }
         .pagination .current { background: #c2185b; color: white; border-color: #c2185b; }
         .mostrando { color: #999; font-size: 12px; margin-top: 8px; }
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3); z-index: 10;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .overlay.abierto { opacity: 1; pointer-events: auto; }
+
+        .panel-detalle {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 420px;
+            background: #fdf0f5; box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            transform: translateX(100%); transition: transform 0.25s; z-index: 20;
+            overflow-y: auto; padding: 1.5rem;
+        }
+        .panel-detalle.abierto { transform: translateX(0); }
+
+        .panel-close { float: right; color: #999; text-decoration: none; font-size: 20px; }
+        .panel-card .badge { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 12px; }
+        .panel-card .badge.PENDIENTE { background: #fff3e0; color: #e65100; }
+        .panel-card .badge.CONFIRMADO { background: #e3f2fd; color: #1565c0; }
+        .panel-card .badge.EN_PROCESO { background: #e1f5fe; color: #0277bd; }
+        .panel-card .badge.LISTO { background: #f3e5f5; color: #7b1fa2; }
+        .panel-card .badge.ENTREGADO { background: #e8f5e9; color: #2e7d32; }
+        .panel-card .badge.CANCELADO { background: #ffebee; color: #c62828; }
+        .panel-card .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 1rem 0 1.2rem; }
+        .panel-card .orden { font-size: 20px; font-weight: 700; color: #333; }
+        .panel-card .valor { font-size: 18px; font-weight: 700; color: #c2185b; }
+        .panel-card h3.seccion { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #999; margin: 1rem 0 8px; }
+        .panel-card .cliente-box { background: white; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+        .panel-card .cliente-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #f8bbd0;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; color: #c2185b;
+        }
+        .panel-card .nombre { font-weight: 700; color: #333; font-size: 14px; }
+        .panel-card .contacto { font-size: 12px; color: #999; }
+        .panel-card .producto-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+        }
+        .panel-card .producto-row .nombre { font-size: 13px; font-weight: 600; color: #333; }
+        .panel-card .producto-row .detalle { font-size: 11px; color: #999; }
+        .panel-card .entrega-info { display: flex; gap: 1.5rem; font-size: 13px; color: #444; flex-wrap: wrap; }
+        .panel-card .entrega-info div span { display: block; font-size: 11px; color: #999; text-transform: uppercase; }
+        .panel-card .direccion { font-size: 13px; color: #444; margin-top: 8px; }
+        .panel-card .nota-cliente {
+            background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px;
+            padding: 10px 12px; font-size: 13px; color: #6d4c00; margin-top: 1rem;
+        }
+        .panel-card .acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 1.5rem; }
+        .btn-primary-full { background: #c2185b; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-danger-full { background: white; color: #c62828; border: 1px solid #c62828; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -88,13 +138,24 @@
             <p>GESTIÓN FLORAL</p>
         </div>
         <nav>
-            <a href="{% url 'home' %}" class="nav-link"><span class="nav-icon">🏠</span> Inicio</a>
-            <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon">📦</span> Inventario</a>
+            <a href="{% url 'home' %}" class="nav-link">
+                <span class="nav-icon"></span> Inicio
+            </a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Inventario
+            </a>
             <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
-               <span class="nav-icon">🛍️</span> Catálogo
+               <span class="nav-icon"></span> Catálogo
            </a>
-            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link active"><span class="nav-icon">🧾</span> Pedidos</a>
-            <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon">💰</span> Finanzas</a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link active">
+                <span class="nav-icon"></span> Pedidos
+            </a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Finanzas
+            </a>
+            <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link">
+                <span class="nav-icon"></span> Asistente IA
+            </a>
 
         </nav>
         <div class="sidebar-footer">
@@ -156,11 +217,124 @@
                     <td>${{ pedido.total|floatformat:0 }}</td>
                     <td>{{ pedido.fecha_creacion|date:"d M, H:i" }}</td>
                     <td><span class="badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
-                    <td><a href="{% url 'pedidosadmin:detalle' pedido.pk %}" class="ver-link">👁️</a></td>
+                    <td><a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}&ver={{ pedido.pk }}" class="ver-link">👁️</a></td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="7" style="text-align:center; color:#999; padding:2rem;">No hay pedidos todavía.</td></tr>
                 {% endfor %}
+                {% if pedido_detalle %}
+                        <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}" class="overlay abierto"></a>
+
+                        <aside class="panel-detalle abierto">
+                            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}" class="panel-close">✕</a>
+                            <div class="panel-card">
+                                <h2 style="font-size:18px; color:#333;">Detalle de Pedido
+                                    <span class="badge {{ pedido_detalle.estado }}">{{ pedido_detalle.get_estado_display }}</span>
+                                </h2>
+
+                                <div class="total-row">
+                                    <span class="orden">order-{{ pedido_detalle.id }}</span>
+                                    <span class="valor">${{ pedido_detalle.total|floatformat:0 }}</span>
+                                </div>
+
+                                <h3 class="seccion">Cliente</h3>
+                                <div class="cliente-box">
+                                    <div class="cliente-avatar">{{ pedido_detalle.cliente.first_name|default:pedido_detalle.cliente.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="nombre">{{ pedido_detalle.cliente.get_full_name|default:pedido_detalle.cliente.username }}</div>
+                                        <div class="contacto">{{ pedido_detalle.cliente.email }} · {{ pedido_detalle.cliente.telefono|default:"Sin teléfono" }}</div>
+                                    </div>
+                                </div>
+
+                                {% if pedido_detalle.es_regalo %}
+                                <h3 class="seccion">Es un regalo {% if pedido_detalle.entrega_anonima %}(entrega anónima){% endif %}</h3>
+                                <div class="direccion">
+                                    Destinatario: {{ pedido_detalle.nombre_destinatario|default:"—" }}<br>
+                                    Teléfono: {{ pedido_detalle.telefono_destinatario|default:"—" }}
+                                </div>
+                                {% endif %}
+
+                                <h3 class="seccion">Productos adquiridos</h3>
+                                {% for detalle in pedido_detalle.detalles.all %}
+                                <div class="producto-row">
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        {% if detalle.producto.imagen %}
+                                        <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}"
+                                             style="width:40px; height:40px; border-radius:8px; object-fit:cover; background:#fce4ec;">
+                                        {% else %}
+                                        <div style="width:40px; height:40px; border-radius:8px; background:#fce4ec; display:flex; align-items:center; justify-content:center; font-size:16px;">🌸</div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="nombre">{{ detalle.producto.nombre|default:"Ramo personalizado" }}</div>
+                                            <div class="detalle">Cantidad: {{ detalle.cantidad }}
+                                                {% if detalle.es_personalizado and detalle.configuracion %}
+                                                    · {{ detalle.configuracion.cantidad_rosas }} rosas
+                                                    {% if detalle.configuracion.color_rosa %}({{ detalle.configuracion.color_rosa.nombre }}){% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>${{ detalle.subtotal|floatformat:0 }}</div>
+                                </div>
+                                {% empty %}
+                                <p style="color:#999; font-size:13px;">Sin productos registrados.</p>
+                                {% endfor %}
+
+                                <h3 class="seccion">Información de entrega</h3>
+                                <div class="entrega-info">
+                                    <div><span>Tipo</span>{{ pedido_detalle.get_tipo_entrega_display }}</div>
+                                    <div><span>Fecha</span>{{ pedido_detalle.fecha_entrega|date:"d/m/Y"|default:"Sin definir" }}</div>
+                                    <div><span>Horario</span>{{ pedido_detalle.hora_entrega|default:"Sin definir" }}</div>
+                                </div>
+                                {% if pedido_detalle.tipo_entrega == 'DOMICILIO' %}
+                                <div class="direccion">
+                                    📍 {{ pedido_detalle.direccion }}{% if pedido_detalle.barrio %}, {{ pedido_detalle.barrio }}{% endif %}, {{ pedido_detalle.ciudad }}
+                                    {% if pedido_detalle.referencia %}<br><span style="color:#999;">Ref: {{ pedido_detalle.referencia }}</span>{% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if pedido_detalle.mensaje %}
+                                <div class="nota-cliente">💌 "{{ pedido_detalle.mensaje }}"</div>
+                                {% endif %}
+
+                                <div class="acciones">
+                                    {% with next_url="?tab="|add:tab_activo|add:"&q="|add:query|add:"&page="|add:page_obj.number|add:"&ver="|add:pedido_detalle.id %}
+                                    {% if pedido_detalle.estado == 'PENDIENTE' or pedido_detalle.estado == 'CONFIRMADO' %}
+                                    <form method="post" action="{% url 'pedidosadmin:accion' pedido_detalle.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="accion" value="aprobar">
+                                        <input type="hidden" name="next" value="{{ next_url }}">
+                                        <button type="submit" class="btn-primary-full">Aprobar y Enviar a Producción</button>
+                                    </form>
+                                    {% elif pedido_detalle.estado == 'EN_PROCESO' %}
+                                    <form method="post" action="{% url 'pedidosadmin:accion' pedido_detalle.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="accion" value="marcar_listo">
+                                        <input type="hidden" name="next" value="{{ next_url }}">
+                                        <button type="submit" class="btn-primary-full">Marcar como Listo</button>
+                                    </form>
+                                    {% elif pedido_detalle.estado == 'LISTO' %}
+                                    <form method="post" action="{% url 'pedidosadmin:accion' pedido_detalle.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="accion" value="entregar">
+                                        <input type="hidden" name="next" value="{{ next_url }}">
+                                        <button type="submit" class="btn-primary-full">Marcar como Entregado</button>
+                                    </form>
+                                    {% endif %}
+
+                                    {% if pedido_detalle.estado != 'ENTREGADO' and pedido_detalle.estado != 'CANCELADO' %}
+                                    <form method="post" action="{% url 'pedidosadmin:accion' pedido_detalle.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="accion" value="cancelar">
+                                        <input type="hidden" name="next" value="{{ next_url }}">
+                                        <button type="submit" class="btn-danger-full">Cancelar Pedido</button>
+                                    </form>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </aside>
+                {% endif %}
             </tbody>
         </table>
 

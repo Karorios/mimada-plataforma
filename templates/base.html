@@ -175,23 +175,25 @@
                 </button>
                 <div class="user-menu-dropdown" id="user-menu-dropdown">
 
-    {% if user.es_admin %}
+                    {% if user.es_admin %}
+                    <a href="{% url 'catalogo:admin_dashboard' %}">
+                        Catálogo
+                    </a>
 
-<a href="{% url 'catalogo:admin_dashboard' %}">
-    🛍️ Catálogo
-</a>
+                    <a href="{% url 'inventario:dashboard' %}">
+                        Inventario
+                    </a>
 
-<a href="{% url 'inventario:dashboard' %}">
-    📦 Inventario
-</a>
+                    <a href="{% url 'pedidosadmin:dashboard' %}">
+                        Pedidos
+                    </a>
 
-<a href="{% url 'pedidosadmin:dashboard' %}">
-    🧾 Pedidos
-</a>
-
-<a href="{% url 'finanzas:dashboard' %}">
-    💰 Finanzas
-</a>
+                    <a href="{% url 'finanzas:dashboard' %}">
+                        Finanzas
+                    </a>
+                    <a href="{% url 'asistente_ia:dashboard' %]">
+                        asistente IA
+                    </a>
 
     {% else %}
 
