@@ -1,4 +1,3 @@
-
 from django.db import models
 
 
@@ -35,8 +34,8 @@ class ItemInventario(models.Model):
     imagen = models.ImageField(upload_to='inventario/', blank=True, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-    stock_actual = models.PositiveIntegerField(default=0)
-    stock_minimo = models.PositiveIntegerField(default=0)
+    stock_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
@@ -51,7 +50,7 @@ class ItemInventario(models.Model):
 
     @property
     def estado(self):
-        if self.stock_actual == 0:
+        if self.stock_actual <= 0:
             return 'AGOTADO'
         elif self.stock_actual <= self.stock_minimo:
             return 'STOCK_BAJO'
@@ -64,3 +63,16 @@ class ItemInventario(models.Model):
             'STOCK_BAJO': 'Stock Bajo',
             'DISPONIBLE': 'Disponible',
         }[self.estado]
+
+
+class RecetaCinta(models.Model):
+    producto_terminado = models.OneToOneField(
+        ItemInventario, on_delete=models.CASCADE, related_name='receta_cinta'
+    )
+    cinta = models.ForeignKey(
+        ItemInventario, on_delete=models.PROTECT, related_name='usado_en_recetas'
+    )
+    metros_por_unidad = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.producto_terminado.nombre} usa {self.metros_por_unidad}m de {self.cinta.nombre}"

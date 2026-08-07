@@ -1,7 +1,6 @@
 from django.contrib import admin
-
-# Register your models here.
-from .models import CategoriaInventario, ItemInventario
+from .models import CategoriaInventario, ItemInventario, RecetaCinta
 
 admin.site.register(CategoriaInventario)
 admin.site.register(ItemInventario)
+admin.site.register(RecetaCinta)

@@ -217,6 +217,10 @@
             border-top: 1px solid #f5f5f5;
             padding-top: 8px;
         }
+        .cliente-card.con-abono {
+            background: #FFD6EF;
+            border-color: #f5c2d9;
+        }
     </style>
 </head>
 <body>
@@ -288,7 +292,7 @@
 
         <div class="clientes-grid">
             {% for cliente in clientes %}
-            <div class="cliente-card">
+            <div class="cliente-card {% if cliente.abonado > 0 %}con-abono{% endif %}">
                 <div class="cliente-top">
                     <div class="cliente-avatar">{{ cliente.nombre|slice:":1"|upper }}</div>
                     <div>
