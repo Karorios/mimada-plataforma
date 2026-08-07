@@ -354,6 +354,7 @@
                 <th>Precio</th>
                 <th>Disponible</th>
                 <th>Destacado</th>
+                <th>Listas</th>
                 <th>Acciones</th>
 
             </tr>
@@ -402,6 +403,14 @@
 
                 </td>
 
+                <td>
+                     <form method="post" action="{% url 'catalogo:actualizar_listas' producto.id %}" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <input type="number" name="unidades_listas" value="{{ producto.unidades_listas }}" min="0"
+                               style="width:55px; border:1px solid #f5d5e3; border-radius:6px; padding:4px 6px; font-size:13px;">
+                        <button type="submit" style="background:#fce4ec; color:#c2185b; border:none; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Guardar</button>
+                    </form>
+                </td>
                 <td class="acciones">
                     <a href="{% url 'catalogo:editar_producto' producto.id %}"
                      class="editar">

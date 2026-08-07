@@ -13,6 +13,9 @@ urlpatterns = [
     # Nuevo módulo administrador
     path('admin/', views.admin_dashboard, name='admin_dashboard'),
 
+    #para la cantidad
+    path('actualizar-listas/<int:pk>/', views.actualizar_listas, name='actualizar_listas'),
+
 path(
     'admin/eliminar/<int:pk>/',
     views.eliminar_producto,

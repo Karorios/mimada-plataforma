@@ -118,3 +118,16 @@ def editar_producto(request, pk):
             "editar": True
         }
     )
+
+@login_required
+def actualizar_listas(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    if request.method == 'POST':
+        try:
+            nuevo_valor = int(request.POST.get('unidades_listas', 0))
+            producto.unidades_listas = max(0, nuevo_valor)
+            producto.save()
+            messages.success(request, f'"{producto.nombre}" actualizado.')
+        except (ValueError, TypeError):
+            messages.error(request, 'Valor inválido.')
+    return redirect('catalogo:admin_dashboard')

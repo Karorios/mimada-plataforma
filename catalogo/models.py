@@ -30,6 +30,11 @@ class Producto(models.Model):
     imagen = models.ImageField(upload_to='catalogo/productos/', blank=True, null=True)
     disponible = models.BooleanField(default=True)
     destacado = models.BooleanField(default=False)  # para "trabajos anteriormente hechos" / hero
+
+    unidades_listas = models.PositiveIntegerField(
+        default=0,
+        help_text="Unidades ya armadas y listas para entrega inmediata. Solo informativo, no bloquea la venta."
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
