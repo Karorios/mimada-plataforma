@@ -18,27 +18,22 @@ def inicio(request):
         except CategoriaInventario.DoesNotExist:
             return ItemInventario.objects.none()
 
-    rosas = items_de('Rosas')
-    girasoles = items_de('girasoles')
     cintas = items_de('Cintas')
     papeles = items_de('papel coreano')
     adicionales = items_de('adicciones')
+    peluches = items_de('Peluches')
 
-    precio_base_rosa = rosas.first().precio if rosas.exists() else None
-    precio_base_girasol = girasoles.first().precio if girasoles.exists() else None
+    detalle_inicial = request.session.get('detalle_personalizado')
 
     return render(request, 'catalogo/inicio.html', {
         'productos_destacados': productos_destacados,
         'categorias': categorias,
-        'rosas': rosas,
-        'girasoles': girasoles,
         'cintas': cintas,
         'papeles': papeles,
         'adicionales': adicionales,
-        'precio_base_rosa': precio_base_rosa,
-        'precio_base_girasol': precio_base_girasol,
+        'peluches': peluches,
+        'detalle_inicial': detalle_inicial,
     })
-
 
 def lista_productos(request):
     productos = Producto.objects.all()

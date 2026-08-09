@@ -1,0 +1,507 @@
+<section class="seccion-crea-detalle" id="crea-tu-detalle">
+
+    <div class="config-header">
+        <h2>🌸 Crea tu detalle</h2>
+        <p class="subtitulo">Elige tus flores, colores, papel decorativo y hasta un peluche: arma un ramo único, a tu manera.</p>
+    </div>
+
+    <form id="csrf-helper" style="display:none">
+
+        {% csrf_token %}
+        {% if detalle_inicial %}
+        {{ detalle_inicial|json_script:"detalle-inicial-data" }}
+        {% endif %}
+
+    </form>
+
+    <div class="config-card selector-flores">
+        <h3>¿Qué quieres incluir?</h3>
+        <div class="opciones-lista">
+            <label class="checkbox-opcion">
+                <input type="checkbox" id="chk-incluir-rosas">
+                Rosas
+            </label>
+            <label class="checkbox-opcion">
+                <input type="checkbox" id="chk-incluir-girasoles">
+                Girasoles
+            </label>
+        </div>
+        <p class="vacio-inline" id="aviso-flores">Selecciona al menos una opción para continuar.</p>
+    </div>
+
+    <div class="config-wrapper">
+
+        <div class="config-card" id="card-rosas" style="display:none;">
+            <h3>Cantidad de rosas</h3>
+            <div class="opciones-lista opciones-cantidad" id="opciones-rosas">
+                <button type="button" class="opcion-btn" data-cantidad="1" data-precio="8000">1 rosa<span class="precio-opcion">$8.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="3" data-precio="17000">3 rosas<span class="precio-opcion">$17.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="4" data-precio="20000">4 rosas<span class="precio-opcion">$20.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="7" data-precio="35000">7 rosas<span class="precio-opcion">$35.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="12" data-precio="55000">12 rosas<span class="precio-opcion">$55.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="15" data-precio="70000">15 rosas<span class="precio-opcion">$70.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="20" data-precio="90000">20 rosas<span class="precio-opcion">$90.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="35" data-precio="150000">35 rosas<span class="precio-opcion">$150.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="50" data-precio="200000">50 rosas<span class="precio-opcion">$200.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="100" data-precio="350000">100 rosas<span class="precio-opcion">$350.000</span></button>
+            </div>
+        </div>
+
+        <div class="config-card" id="card-girasoles" style="display:none;">
+            <h3>Cantidad de girasoles</h3>
+            <div class="opciones-lista opciones-cantidad" id="opciones-girasoles">
+                <button type="button" class="opcion-btn" data-cantidad="1" data-precio="15000">1 girasol<span class="precio-opcion">$15.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="3" data-precio="40000">3 girasoles<span class="precio-opcion">$40.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="5" data-precio="65000">5 girasoles<span class="precio-opcion">$65.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="7" data-precio="90000">7 girasoles<span class="precio-opcion">$90.000</span></button>
+            </div>
+        </div>
+
+        <div class="config-card" id="card-color-rosa" style="display:none;">
+            <h3>Color de rosa</h3>
+            <p class="vacio-inline">Puedes elegir hasta la misma cantidad de rosas que seleccionaste.</p>
+            <div class="swatches" id="swatches-cintas">
+                {% for cinta in cintas %}
+                <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+                {% empty %}
+                <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
+                {% endfor %}
+            </div>
+            <p class="seleccionados" id="seleccion-cinta">Sin seleccionar</p>
+        </div>
+
+        <div class="config-card">
+            <h3>Papel de decoración</h3>
+            <div class="opciones-lista opciones-imagenes" id="opciones-papel">
+                {% for papel in papeles %}
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id }}">
+                    {% if papel.imagen %}
+                        <img src="{{ papel.imagen.url }}" alt="{{ papel.nombre }}">
+                    {% endif %}
+                    <span>{{ papel.nombre }}</span>
+                </button>
+                {% empty %}
+                <p class="vacio-inline">Aún no hay papeles cargados.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="config-card">
+            <h3>Adicionales</h3>
+            <div class="opciones-lista" id="opciones-adicionales">
+                {% for extra in adicionales %}
+                <label class="checkbox-opcion">
+                    <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:0 }}">
+                    {{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio }}){% endif %}
+                </label>
+                {% empty %}
+                <p class="vacio-inline">Aún no hay adicionales cargados.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="config-card">
+            <h3>Peluche (opcional)</h3>
+            <div class="opciones-lista opciones-imagenes" id="opciones-peluche">
+                {% for peluche in peluches %}
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ peluche.precio|default:0 }}" data-id="{{ peluche.id }}">
+                    {% if peluche.imagen %}
+                        <img src="{{ peluche.imagen.url }}" alt="{{ peluche.nombre }}">
+                    {% endif %}
+                    <span>{{ peluche.nombre }}</span>
+                    {% if peluche.precio %}<span class="precio-opcion">+${{ peluche.precio }}</span>{% endif %}
+                </button>
+                {% empty %}
+                <p class="vacio-inline">Aún no hay peluches cargados.</p>
+                {% endfor %}
+            </div>
+            <p class="seleccionados" id="seleccion-peluche">Sin peluche</p>
+        </div>
+
+        <div class="config-card resumen-card">
+            <h3>Tu pedido</h3>
+            <div class="resumen-linea"><span>Rosas</span><span id="resumen-rosas">$0</span></div>
+            <div class="resumen-linea"><span>Girasoles</span><span id="resumen-girasoles">$0</span></div>
+            <div class="resumen-linea"><span>Color rosa</span><span id="resumen-cinta">$0</span></div>
+            <div class="resumen-linea"><span>Papel</span><span id="resumen-papel">$0</span></div>
+            <div class="resumen-linea"><span>Adicionales</span><span id="resumen-adicionales">$0</span></div>
+            <div class="resumen-linea"><span>Peluche</span><span id="resumen-peluche">$0</span></div>
+            <div class="resumen-linea total"><span>Total</span><span id="resumen-total">$0</span></div>
+            <button type="button" class="btn-confirmar" id="btn-confirmar-detalle">
+                Confirmar pedido
+            </button>
+            <p class="nota-login">
+                {% if not user.is_authenticated %}
+                    Si no has iniciado sesión te pediremos que lo hagas, sin perder lo que armaste.
+                {% endif %}
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<style>
+.seccion-crea-detalle { max-width: 1100px; margin: 0 auto 3rem; padding: 0 1.5rem; }
+.opcion-imagen { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 90px; text-align: center; }
+.opcion-imagen img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+.precio-opcion { font-size: 11px; color: #e91e8c; font-weight: 600; display: block; }
+.opcion-btn.activo .precio-opcion { color: white; }
+.opciones-cantidad .opcion-btn { min-width: 90px; text-align: center; line-height: 1.4; }
+.selector-flores { max-width: 700px; margin: 1.5rem auto 0 auto; padding: 1.2rem 1.4rem; box-sizing: border-box; text-align: center; }
+.selector-flores .opciones-lista { justify-content: center; }
+.config-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.config-header h2 { color: #c2185b; font-size: 1.6rem; margin-bottom: 6px; }
+.config-header .subtitulo { color: #777; font-size: 14px; max-width: 520px; margin: 0 auto; }
+.config-wrapper { max-width: 700px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; box-sizing: border-box; }
+.config-card { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; }
+.config-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 1rem; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; }
+.swatch.activo { border-color: #e91e8c; box-shadow: 0 0 0 2px #fce4ec; }
+.seleccionados { font-size: 12px; color: #999; margin-top: 8px; }
+.opciones-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.opcion-btn { background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #666; cursor: pointer; }
+.opcion-btn.activo { background: #e91e8c; color: white; border-color: #e91e8c; }
+.checkbox-opcion { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.resumen-card { background: #fdf0f5; }
+.resumen-linea { display: flex; justify-content: space-between; font-size: 13px; color: #666; padding: 6px 0; border-bottom: 1px dashed #f0c0d4; }
+.resumen-linea.total { border-bottom: none; font-weight: 700; color: #c2185b; font-size: 15px; margin-top: 6px; }
+.btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: pointer; }
+.btn-confirmar:hover { background: #c2185b; }
+.nota-login { text-align: center; font-size: 11px; color: #aaa; margin-top: 6px; }
+.vacio-inline { font-size: 12px; color: #bbb; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let cantidadRosas = 0;
+    let precioRosas = 0;
+    let cantidadGirasoles = 0;
+    let precioGirasoles = 0;
+    let precioCinta = 0;
+    let precioPapel = 0;
+    let precioAdicionales = 0;
+    let precioPeluche = 0;
+
+    const chkRosas = document.getElementById('chk-incluir-rosas');
+    const chkGirasoles = document.getElementById('chk-incluir-girasoles');
+    const cardRosas = document.getElementById('card-rosas');
+    const cardGirasoles = document.getElementById('card-girasoles');
+    const cardColorRosa = document.getElementById('card-color-rosa');
+    const avisoFlores = document.getElementById('aviso-flores');
+
+    const rosasContenedor = document.getElementById('opciones-rosas');
+    const girasolesContenedor = document.getElementById('opciones-girasoles');
+    const cintaContenedor = document.getElementById('swatches-cintas');
+    const papelContenedor = document.getElementById('opciones-papel');
+    const adicionalesContenedor = document.getElementById('opciones-adicionales');
+    const pelucheContenedor = document.getElementById('opciones-peluche');
+    const btnConfirmar = document.getElementById('btn-confirmar-detalle');
+
+    if (!chkRosas || !btnConfirmar) return;
+
+    function formatoMoneda(valor) {
+        return '$' + valor.toLocaleString('es-CO');
+    }
+
+    function recalcular() {
+        const total = precioRosas + precioGirasoles + precioCinta + precioPapel + precioAdicionales + precioPeluche;
+
+        document.getElementById('resumen-rosas').textContent = formatoMoneda(precioRosas);
+        document.getElementById('resumen-girasoles').textContent = formatoMoneda(precioGirasoles);
+        document.getElementById('resumen-cinta').textContent = formatoMoneda(precioCinta);
+        document.getElementById('resumen-papel').textContent = formatoMoneda(precioPapel);
+        document.getElementById('resumen-adicionales').textContent = formatoMoneda(precioAdicionales);
+        document.getElementById('resumen-peluche').textContent = formatoMoneda(precioPeluche);
+        document.getElementById('resumen-total').textContent = formatoMoneda(total);
+    }
+
+    function recalcularColorRosa() {
+        const seleccionados = cintaContenedor
+            ? Array.from(cintaContenedor.querySelectorAll('.swatch.activo'))
+            : [];
+        precioCinta = 0;
+        const nombres = seleccionados.map(sw => sw.title);
+        document.getElementById('seleccion-cinta').textContent = nombres.length
+            ? nombres.join(', ')
+            : 'Sin seleccionar';
+        recalcular();
+    }
+
+    function limitarColores() {
+        if (!cintaContenedor) return;
+        const activos = Array.from(cintaContenedor.querySelectorAll('.swatch.activo'));
+        if (activos.length > cantidadRosas) {
+            activos.slice(cantidadRosas).forEach(sw => sw.classList.remove('activo'));
+        }
+        recalcularColorRosa();
+    }
+
+    function actualizarVisibilidadFlores() {
+
+        const incluyeRosas = chkRosas.checked;
+        const incluyeGirasoles = chkGirasoles.checked;
+
+        cardRosas.style.display = incluyeRosas ? 'block' : 'none';
+        cardColorRosa.style.display = incluyeRosas ? 'block' : 'none';
+        cardGirasoles.style.display = incluyeGirasoles ? 'block' : 'none';
+
+        avisoFlores.style.display = (incluyeRosas || incluyeGirasoles) ? 'none' : 'block';
+
+        if (!incluyeRosas) {
+            cantidadRosas = 0;
+            precioRosas = 0;
+            if (rosasContenedor) rosasContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+            if (cintaContenedor) cintaContenedor.querySelectorAll('.swatch').forEach(sw => sw.classList.remove('activo'));
+            precioCinta = 0;
+            document.getElementById('seleccion-cinta').textContent = 'Sin seleccionar';
+        }
+
+        if (!incluyeGirasoles) {
+            cantidadGirasoles = 0;
+            precioGirasoles = 0;
+            if (girasolesContenedor) girasolesContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+        }
+
+        recalcular();
+    }
+
+    chkRosas.addEventListener('change', actualizarVisibilidadFlores);
+    chkGirasoles.addEventListener('change', actualizarVisibilidadFlores);
+
+    if (rosasContenedor) {
+        rosasContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const yaActivo = btn.classList.contains('activo');
+                rosasContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+
+                if (yaActivo) {
+                    cantidadRosas = 0;
+                    precioRosas = 0;
+                } else {
+                    btn.classList.add('activo');
+                    cantidadRosas = parseInt(btn.dataset.cantidad, 10);
+                    precioRosas = parseFloat(btn.dataset.precio || 0);
+                }
+
+                limitarColores();
+                recalcular();
+            });
+        });
+    }
+
+    if (girasolesContenedor) {
+        girasolesContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const yaActivo = btn.classList.contains('activo');
+                girasolesContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+
+                if (yaActivo) {
+                    cantidadGirasoles = 0;
+                    precioGirasoles = 0;
+                } else {
+                    btn.classList.add('activo');
+                    cantidadGirasoles = parseInt(btn.dataset.cantidad, 10);
+                    precioGirasoles = parseFloat(btn.dataset.precio || 0);
+                }
+
+                recalcular();
+            });
+        });
+    }
+
+    if (cintaContenedor) {
+        cintaContenedor.querySelectorAll('.swatch').forEach(sw => {
+            sw.addEventListener('click', () => {
+
+                const yaActivo = sw.classList.contains('activo');
+                const activos = cintaContenedor.querySelectorAll('.swatch.activo').length;
+
+                if (!yaActivo) {
+                    if (cantidadRosas === 0) {
+                        alert('Primero selecciona la cantidad de rosas.');
+                        return;
+                    }
+                    if (activos >= cantidadRosas) {
+                        alert('Solo puedes elegir hasta ' + cantidadRosas + ' color(es), según la cantidad de rosas seleccionada.');
+                        return;
+                    }
+                }
+
+                sw.classList.toggle('activo');
+                recalcularColorRosa();
+            });
+        });
+    }
+
+    if (papelContenedor) {
+        papelContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                papelContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                precioPapel = parseFloat(btn.dataset.precio || 0);
+                recalcular();
+            });
+        });
+    }
+
+    if (pelucheContenedor) {
+        pelucheContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const yaActivo = btn.classList.contains('activo');
+                pelucheContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+
+                if (yaActivo) {
+                    precioPeluche = 0;
+                    document.getElementById('seleccion-peluche').textContent = 'Sin peluche';
+                } else {
+                    btn.classList.add('activo');
+                    precioPeluche = parseFloat(btn.dataset.precio || 0);
+                    document.getElementById('seleccion-peluche').textContent = btn.querySelector('span').textContent;
+                }
+                recalcular();
+            });
+        });
+    }
+
+    if (adicionalesContenedor) {
+        adicionalesContenedor.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            chk.addEventListener('change', () => {
+                precioAdicionales = 0;
+                adicionalesContenedor.querySelectorAll('input[type="checkbox"]:checked').forEach(c => {
+                    precioAdicionales += parseFloat(c.dataset.precio || 0);
+                });
+                recalcular();
+            });
+        });
+    }
+
+    btnConfirmar.addEventListener('click', function () {
+
+        if (cantidadRosas < 1 && cantidadGirasoles < 1) {
+            alert('Selecciona al menos una flor (rosas o girasoles) para continuar.');
+            return;
+        }
+
+        const cintaIds = cintaContenedor
+            ? Array.from(cintaContenedor.querySelectorAll('.swatch.activo')).map(sw => sw.dataset.id)
+            : [];
+
+        const papelBtnActivo = papelContenedor
+            ? papelContenedor.querySelector('.opcion-btn.activo')
+            : null;
+
+        const pelucheBtnActivo = pelucheContenedor
+            ? pelucheContenedor.querySelector('.opcion-btn.activo')
+            : null;
+
+        const adicionalesIds = adicionalesContenedor
+            ? Array.from(adicionalesContenedor.querySelectorAll('input[type="checkbox"]:checked')).map(chk => chk.value)
+            : [];
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'pedidos:guardar_detalle_personalizado' %}";
+
+        function agregarCampo(nombre, valor) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = nombre;
+            input.value = valor;
+            form.appendChild(input);
+        }
+
+        agregarCampo('csrfmiddlewaretoken', document.querySelector('#csrf-helper [name=csrfmiddlewaretoken]').value);
+        agregarCampo('cantidad_rosas', cantidadRosas);
+        agregarCampo('cantidad_girasoles', cantidadGirasoles);
+        agregarCampo('precio_rosas', precioRosas);
+        agregarCampo('precio_girasoles', precioGirasoles);
+        agregarCampo('precio_cinta', precioCinta);
+        agregarCampo('precio_papel', precioPapel);
+        agregarCampo('precio_adicionales', precioAdicionales);
+        agregarCampo('papel_id', papelBtnActivo ? papelBtnActivo.dataset.id : '');
+        agregarCampo('precio_peluche', precioPeluche);
+        agregarCampo('peluche_id', pelucheBtnActivo ? pelucheBtnActivo.dataset.id : '');
+
+        cintaIds.forEach(id => agregarCampo('color_cinta_ids', id));
+        adicionalesIds.forEach(id => agregarCampo('adicionales_ids', id));
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+    const detalleInicialEl = document.getElementById('detalle-inicial-data');
+    const detalleInicial = detalleInicialEl ? JSON.parse(detalleInicialEl.textContent) : null;
+
+    if (detalleInicial) {
+
+        if (detalleInicial.cantidad_rosas > 0) {
+            chkRosas.checked = true;
+        }
+        if (detalleInicial.cantidad_girasoles > 0) {
+            chkGirasoles.checked = true;
+        }
+        actualizarVisibilidadFlores();
+
+        if (rosasContenedor && detalleInicial.cantidad_rosas) {
+            const btnRosas = rosasContenedor.querySelector('.opcion-btn[data-cantidad="' + detalleInicial.cantidad_rosas + '"]');
+            if (btnRosas) {
+                btnRosas.classList.add('activo');
+                cantidadRosas = detalleInicial.cantidad_rosas;
+                precioRosas = parseFloat(btnRosas.dataset.precio || 0);
+            }
+        }
+
+        if (girasolesContenedor && detalleInicial.cantidad_girasoles) {
+            const btnGirasoles = girasolesContenedor.querySelector('.opcion-btn[data-cantidad="' + detalleInicial.cantidad_girasoles + '"]');
+            if (btnGirasoles) {
+                btnGirasoles.classList.add('activo');
+                cantidadGirasoles = detalleInicial.cantidad_girasoles;
+                precioGirasoles = parseFloat(btnGirasoles.dataset.precio || 0);
+            }
+        }
+
+        if (cintaContenedor && detalleInicial.color_cinta_ids) {
+            detalleInicial.color_cinta_ids.forEach(id => {
+                const sw = cintaContenedor.querySelector('.swatch[data-id="' + id + '"]');
+                if (sw) sw.classList.add('activo');
+            });
+            limitarColores();
+        }
+
+        if (papelContenedor && detalleInicial.papel_id) {
+            const btn = papelContenedor.querySelector('.opcion-btn[data-id="' + detalleInicial.papel_id + '"]');
+            if (btn) {
+                papelContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                precioPapel = parseFloat(btn.dataset.precio || 0);
+            }
+        }
+
+        if (pelucheContenedor && detalleInicial.peluche_id) {
+            const btnPeluche = pelucheContenedor.querySelector('.opcion-btn[data-id="' + detalleInicial.peluche_id + '"]');
+            if (btnPeluche) {
+                btnPeluche.classList.add('activo');
+                precioPeluche = parseFloat(btnPeluche.dataset.precio || 0);
+                document.getElementById('seleccion-peluche').textContent = btnPeluche.querySelector('span').textContent;
+            }
+        }
+
+        if (adicionalesContenedor && detalleInicial.adicionales_ids) {
+            detalleInicial.adicionales_ids.forEach(id => {
+                const chk = adicionalesContenedor.querySelector('input[value="' + id + '"]');
+                if (chk) chk.checked = true;
+            });
+            precioAdicionales = 0;
+            adicionalesContenedor.querySelectorAll('input[type="checkbox"]:checked').forEach(c => {
+                precioAdicionales += parseFloat(c.dataset.precio || 0);
+            });
+        }
+    }
+
+    recalcular();
+
+});
+</script>
