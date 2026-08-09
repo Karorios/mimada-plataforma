@@ -11,6 +11,17 @@ urlpatterns = [
         views.crear_detalle,
         name="crear_detalle"
     ),
+    path(
+        "guardar-detalle-personalizado/",
+        views.guardar_detalle_personalizado,
+        name="guardar_detalle_personalizado"
+    ),
+
+    path(
+        "crear-pedido-personalizado/",
+        views.crear_pedido_personalizado,
+        name="crear_pedido_personalizado"
+    ),
 
     path(
         "crear-pedido/<int:producto_id>/",
@@ -22,6 +33,11 @@ urlpatterns = [
         "resumen/",
         views.resumen,
         name="resumen"
+    ),
+    path(
+        "nuevo-detalle/",
+        views.nuevo_detalle,
+        name="nuevo_detalle"
     ),
 
     path(

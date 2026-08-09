@@ -13,7 +13,16 @@
         <p class="subtitulo">
             Completa la información para continuar con tu compra.
         </p>
-
+           {% if es_personalizado %}
+        <div class="editar-ramo-opciones">
+            <a href="{% url 'pedidos:crear_detalle' %}" class="link-editar-ramo">
+                ✏️ Modificar el detalle actual
+            </a>
+            <a href="{% url 'pedidos:nuevo_detalle' %}" class="link-editar-ramo">
+                ➕ Crear un ramo nuevo
+            </a>
+        </div>
+        {% endif %}
         <form method="post">
 
             {% csrf_token %}
@@ -37,7 +46,30 @@
 </div>
 {% endblock %}
 {% block extra_style %}
-
+.editar-ramo-opciones {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.link-editar-ramo {
+    font-size: 13px;
+    color: #d63384;
+    font-weight: 600;
+}
+.link-editar-ramo:hover {
+    text-decoration: underline;
+}
+.link-editar-ramo {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #d63384;
+    font-weight: 600;
+}
+.link-editar-ramo:hover {
+    text-decoration: underline;
+}
 .contenedor{
     max-width:850px;
     margin:40px auto;
@@ -204,6 +236,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
+    const campoFecha = document.getElementById("id_fecha_entrega");
+
     if (tipoEntrega) {
         togglerCamposDomicilio();
         mostrarInfoEntrega();
@@ -212,7 +247,33 @@ document.addEventListener("DOMContentLoaded", function () {
         tipoEntrega.addEventListener("change", function () {
             togglerCamposDomicilio();
             mostrarInfoEntrega();
+            if (campoFecha) validarFechaPlaza();
         });
+    }
+
+    if (campoFecha) {
+        campoFecha.addEventListener("change", validarFechaPlaza);
+    }
+        function validarFechaPlaza() {
+
+        const campoFecha = document.getElementById("id_fecha_entrega");
+
+        if (!campoFecha || !campoFecha.value) return;
+
+        if (tipoEntrega.value === "PLAZA") {
+
+            // Evitar problemas de zona horaria al parsear "YYYY-MM-DD"
+            const partes = campoFecha.value.split("-");
+            const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+            const dia = fecha.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue...
+
+            const diasValidos = [1, 2, 4]; // Lunes, martes, jueves
+
+            if (!diasValidos.includes(dia)) {
+                alert("Para recoger en Plaza de las Américas, la fecha debe ser lunes, martes o jueves.");
+                campoFecha.value = "";
+            }
+        }
     }
 
 });

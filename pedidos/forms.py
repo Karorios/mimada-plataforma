@@ -70,6 +70,15 @@ class PedidoForm(forms.ModelForm):
             fecha_minima.isoformat()
         )
 
+        # Obligatorios siempre (dirección/barrio ya se validan
+        # aparte en clean() solo cuando aplica domicilio)
+        self.fields["nombre_destinatario"].required = True
+        self.fields["telefono_destinatario"].required = True
+        self.fields["fecha_entrega"].required = True
+        self.fields["hora_entrega"].required = True
+
+        # El mensaje queda opcional (ya lo es por defecto)
+
     def clean_fecha_entrega(self):
         fecha = self.cleaned_data["fecha_entrega"]
         fecha_minima = date.today() + timedelta(days=2)

@@ -1,12 +1,10 @@
 from urllib.parse import quote
 from datetime import date
-
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-
 from inventario.models import ItemInventario, CategoriaInventario
 from catalogo.models import Producto
-
 from .forms import PedidoForm
 from .models import Pedido, DetallePedido
 
@@ -48,6 +46,9 @@ def crear_detalle(request):
     cintas = items_de("Cintas")
     papeles = items_de("papel coreano")
     adicionales = items_de("adicciones")
+    peluches = items_de("Peluches")
+
+    detalle_inicial = request.session.get("detalle_personalizado")
 
     return render(
         request,
@@ -58,11 +59,91 @@ def crear_detalle(request):
             "cintas": cintas,
             "papeles": papeles,
             "adicionales": adicionales,
+            "peluches": peluches,
             "precio_base_rosa": rosas.first().precio if rosas.exists() else 0,
             "precio_base_girasol": girasoles.first().precio if girasoles.exists() else 0,
+            "detalle_inicial": detalle_inicial,
         },
     )
+def nuevo_detalle(request):
+    request.session.pop("detalle_personalizado", None)
+    return redirect("pedidos:crear_detalle")
 
+def guardar_detalle_personalizado(request):
+
+    if request.method != "POST":
+        return redirect("pedidos:crear_detalle")
+
+    detalle = {
+        "cantidad_rosas": int(request.POST.get("cantidad_rosas", 0)),
+        "cantidad_girasoles": int(request.POST.get("cantidad_girasoles", 0)),
+        "color_cinta_ids": request.POST.getlist("color_cinta_ids"),
+        "papel_id": request.POST.get("papel_id") or None,
+        "adicionales_ids": request.POST.getlist("adicionales_ids"),
+        "peluche_id": request.POST.get("peluche_id") or None,
+        "precio_rosas": float(request.POST.get("precio_rosas", 0)),
+        "precio_girasoles": float(request.POST.get("precio_girasoles", 0)),
+        "precio_cinta": float(request.POST.get("precio_cinta", 0)),
+        "precio_papel": float(request.POST.get("precio_papel", 0)),
+        "precio_adicionales": float(request.POST.get("precio_adicionales", 0)),
+        "precio_peluche": float(request.POST.get("precio_peluche", 0)),
+    }
+
+    detalle["total"] = (
+            detalle["precio_rosas"]
+            + detalle["precio_girasoles"]
+            + detalle["precio_cinta"]
+            + detalle["precio_papel"]
+            + detalle["precio_adicionales"]
+            + detalle["precio_peluche"]
+    )
+
+    # Guardamos en sesión: esto funciona aunque no haya login todavía
+    request.session["detalle_personalizado"] = detalle
+    request.session.pop("producto", None)
+
+    if request.user.is_authenticated:
+        return redirect("pedidos:crear_pedido_personalizado")
+
+    login_url = reverse("usuarios:login")
+    siguiente = reverse("pedidos:crear_pedido_personalizado")
+    return redirect(f"{login_url}?next={siguiente}")
+
+
+@login_required(login_url="usuarios:login")
+def crear_pedido_personalizado(request):
+
+    detalle = request.session.get("detalle_personalizado")
+
+    if not detalle:
+        return redirect("pedidos:crear_detalle")
+
+    if request.method == "POST":
+
+        form = PedidoForm(request.POST)
+
+        if form.is_valid():
+
+            datos = form.cleaned_data.copy()
+            datos["fecha_entrega"] = datos["fecha_entrega"].isoformat()
+
+            request.session["pedido"] = datos
+            request.session.pop("producto", None)
+
+            return redirect("pedidos:resumen")
+
+    else:
+        form = PedidoForm()
+
+    return render(
+        request,
+        "pedidos/crear_pedido.html",
+        {
+            "form": form,
+            "producto": "Ramo personalizado",
+            "es_personalizado": True,
+        },
+    )
 
 @login_required(login_url="usuarios:login")
 def crear_pedido(request, producto_id):
@@ -96,7 +177,6 @@ def crear_pedido(request, producto_id):
         },
     )
 
-
 @login_required(login_url="usuarios:login")
 def resumen(request):
 
@@ -106,25 +186,34 @@ def resumen(request):
         return redirect("pedidos:inicio")
 
     producto_id = request.session.get("producto")
+    detalle_personalizado = request.session.get("detalle_personalizado")
 
-    producto = get_object_or_404(Producto, pk=producto_id)
+    if producto_id:
+        producto = get_object_or_404(Producto, pk=producto_id)
+        producto_nombre = producto.nombre
+        producto_precio = producto.precio
+    elif detalle_personalizado:
+        producto_nombre = "Ramo personalizado"
+        producto_precio = detalle_personalizado["total"]
+    else:
+        return redirect("pedidos:inicio")
 
     tipo_entrega = datos.get("tipo_entrega")
 
-    # Texto legible para tipo_entrega (dict no tiene get_FOO_display)
     tipo_entrega_display = dict(Pedido.TIPO_ENTREGA).get(
         tipo_entrega, tipo_entrega
     )
 
     valor_domicilio = calcular_domicilio(tipo_entrega)
-    total = producto.precio + valor_domicilio
+    total = producto_precio + valor_domicilio
 
     return render(
         request,
         "pedidos/resumen.html",
         {
             "datos": datos,
-            "producto": producto,
+            "producto_nombre": producto_nombre,
+            "producto_precio": producto_precio,
             "tipo_entrega_display": tipo_entrega_display,
             "es_domicilio": tipo_entrega == "DOMICILIO",
             "punto_recogida": PUNTOS_RECOGIDA.get(tipo_entrega),
@@ -132,8 +221,6 @@ def resumen(request):
             "total": total,
         },
     )
-
-
 @login_required(login_url="usuarios:login")
 def confirmar_pedido(request):
 
@@ -143,11 +230,21 @@ def confirmar_pedido(request):
         return redirect("pedidos:inicio")
 
     producto_id = request.session.get("producto")
+    detalle_personalizado = request.session.get("detalle_personalizado")
 
-    producto = get_object_or_404(Producto, pk=producto_id)
+    if producto_id:
+        producto = get_object_or_404(Producto, pk=producto_id)
+        producto_nombre = producto.nombre
+        producto_precio = producto.precio
+    elif detalle_personalizado:
+        producto = None
+        producto_nombre = "Ramo personalizado"
+        producto_precio = detalle_personalizado["total"]
+    else:
+        return redirect("pedidos:inicio")
 
     valor_domicilio = calcular_domicilio(datos["tipo_entrega"])
-    total = producto.precio + valor_domicilio
+    total = producto_precio + valor_domicilio
 
     pedido = Pedido.objects.create(
 
@@ -172,40 +269,64 @@ def confirmar_pedido(request):
         valor_domicilio=valor_domicilio,
         total=total,
     )
-    DetallePedido.objects.create(
+
+    detalle_pedido = DetallePedido.objects.create(
         pedido=pedido,
         producto=producto,
+        es_personalizado=detalle_personalizado is not None,
         cantidad=1,
-        precio_unitario=producto.precio,
-        subtotal=producto.precio,
+        precio_unitario=producto_precio,
+        subtotal=producto_precio,
     )
+
+    if detalle_personalizado:
+
+        config = ConfiguracionRamo.objects.create(
+            detalle_pedido=detalle_pedido,
+            cantidad_rosas=detalle_personalizado["cantidad_rosas"],
+            cantidad_girasoles=detalle_personalizado["cantidad_girasoles"],
+            papel_decorativo_id=detalle_personalizado["papel_id"] or None,
+        )
+
+        if detalle_personalizado["color_cinta_ids"]:
+            config.color_cinta.set(detalle_personalizado["color_cinta_ids"])
+
+        adicionales_y_peluche = list(detalle_personalizado["adicionales_ids"])
+
+        if detalle_personalizado.get("peluche_id"):
+            adicionales_y_peluche.append(detalle_personalizado["peluche_id"])
+
+        if adicionales_y_peluche:
+            config.adicionales.set(adicionales_y_peluche)
+
     if datos["tipo_entrega"] == "DOMICILIO":
         bloque_entrega = f"""Dirección:
-    {pedido.direccion}
+{pedido.direccion}
 
-    Barrio:
-    {pedido.barrio}
+Barrio:
+{pedido.barrio}
 
-    Ciudad:
-    {pedido.ciudad}"""
+Ciudad:
+{pedido.ciudad}"""
     else:
         punto = PUNTOS_RECOGIDA.get(pedido.tipo_entrega, {})
         bloque_entrega = f"""Punto de recogida:
-    {punto.get('direccion', '')}
+{punto.get('direccion', '')}
 
-    Horario:
-    {punto.get('horario', '')}"""
+Horario:
+{punto.get('horario', '')}"""
 
     domicilio_texto = "Gratis" if pedido.valor_domicilio == 0 else f"${pedido.valor_domicilio}"
+
     mensaje = f"""
 🌸 *Nuevo pedido Mimada*
 
 Pedido No: {pedido.id}
 
 Producto:
-{producto.nombre}
+{producto_nombre}
 Valor producto:
-${producto.precio}
+${producto_precio}
 
 Domicilio:
 {domicilio_texto}
@@ -247,6 +368,7 @@ Quedo atento(a) a la información para realizar el pago.
 
     request.session.pop("pedido", None)
     request.session.pop("producto", None)
+    request.session.pop("detalle_personalizado", None)
 
     return redirect(url)
 
