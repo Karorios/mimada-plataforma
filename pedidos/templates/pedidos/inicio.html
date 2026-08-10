@@ -1,260 +1,75 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Mimada - Detalles hechos con amor{% endblock %}
+{% block title %}Mimada - Mis pedidos{% endblock %}
 
 {% block content %}
-
-<section class="hero">
-    <h1>Detalles hechos<br>con amor</h1>
-    <p>Artesanía floral colombiana diseñada para celebrar los momentos que realmente importan.</p>
-    <div class="hero-botones">
-        <a href="{% url 'catalogo:lista' %}" class="btn-hero-solido">Explorar colección</a>
-        <a href="#crea-tu-detalle" class="btn-hero-outline">Crear mi detalle</a>
-    </div>
+<section class="pedidos-header">
+    <h1>Mis pedidos</h1>
+    <p class="subtitulo">Historial de tus compras en Mimada</p>
 </section>
 
-<section class="filtros">
-    <button class="chip active" data-filtro="todo">Todos</button>
-    {% for categoria in categorias %}
-        <button class="chip" data-filtro="{{ categoria.nombre }}">{{ categoria.get_nombre_display }}</button>
-    {% endfor %}
-</section>
-
-<section class="galeria">
-    <h2>Nuestra selección</h2>
-    <p class="subtitulo">Regalos curados con elegancia y pasión</p>
-
-    {% if productos_destacados %}
-    <div class="grid-productos">
-        {% for producto in productos_destacados %}
-        <div class="tarjeta-producto" data-categoria="{{ producto.categoria.nombre }}">
-            <div class="imagen-wrap">
-                {% if producto.imagen %}
-                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-                {% else %}
-                    <div class="sin-imagen">🌸</div>
-                {% endif %}
-                {% if user.is_authenticated %}
-                    <a href="{% url 'usuarios:toggle_favorito' producto.id %}"
-                       class="btn-favorito {% if producto in user.favoritos.all %}activo{% endif %}">♥</a>
-                {% else %}
-                    <a href="{% url 'usuarios:login' %}" class="btn-favorito">♥</a>
-                {% endif %}
+<div class="galeria">
+    {% if pedidos %}
+    <div class="lista-pedidos">
+        {% for pedido in pedidos %}
+        <div class="tarjeta-pedido">
+            <div class="fila-top">
+                <span class="numero-pedido">Pedido #{{ pedido.id }}</span>
+                <span class="estado estado-{{ pedido.estado|lower }}">{{ pedido.get_estado_display }}</span>
             </div>
 
-            <div class="info-producto">
-                {% if producto.disponible %}
-            {% else %}
-                <span class="badge-producto badge-agotado">Agotado</span>
-            {% endif %}
-                <h3>{{ producto.nombre }}</h3>
-                <p class="categoria-producto">{{ producto.categoria.get_nombre_display }}</p>
-                <div class="fila-precio">
-                    <p class="precio">${{ producto.precio }}</p>
-                    {% if producto.disponible %}
-                        <a href="{% url 'pedidos:crear_pedido' producto.id %}"
-                           class="btn-comprar">
-                            Comprar
-                        </a>
+            {% for detalle in pedido.detalles.all %}
+                <div class="fila-producto">
+                    {% if detalle.producto.imagen %}
+                        <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}" class="img-producto-pedido">
                     {% endif %}
+                    <p class="producto-linea">
+                        {{ detalle.cantidad }} x {{ detalle.producto.nombre|default:"Ramo personalizado" }}
+                    </p>
                 </div>
+            {% endfor %}
+
+            <div class="fila-info">
+                <span>{{ pedido.get_tipo_entrega_display }}</span>
+                <span>{{ pedido.fecha_entrega|date:"d/m/Y" }}</span>
             </div>
+
+            <div class="fila-total">
+                <span>Total</span>
+                <strong>${{ pedido.total }}</strong>
+            </div>
+
+            {% if pedido.estado == "PENDIENTE" %}
+            <div class="fila-acciones-pedido">
+                <a href="{% url 'pedidos:editar_pedido' pedido.id %}" class="btn-editar-pedido">Editar</a>
+                <a href="{% url 'pedidos:cancelar_pedido' pedido.id %}" class="btn-cancelar-pedido" onclick="return confirm('¿Seguro que quieres cancelar este pedido?');">Cancelar</a>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
     {% else %}
-        <p class="vacio">Aún no hay trabajos destacados para mostrar.</p>
+        <p class="vacio">Aún no has hecho ningún pedido.</p>
     {% endif %}
-</section>
-
-{% include 'pedidos/_crea_detalle_seccion.html' %}
-
+</div>
 {% endblock %}
 
 {% block extra_style %}
-.badge-agotado {
-    background: #f0f0f0;
-    color: #999;
-}
-.imagen-wrap {
-    position: relative;
-}
-.btn-favorito {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: white;
-    color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.btn-favorito.activo {
-    color: #e91e8c;
-}
-.hero {
-    background: #c2185b;
-    color: white;
-    text-align: center;
-    padding: 3.5rem 1.5rem;
-}
-.badge-hero {
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 999px;
-    padding: 4px 14px;
-    font-size: 11px;
-    margin-bottom: 1rem;
-}
-.hero h1 {
-    font-size: 2.2rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    font-family: Georgia, serif;
-}
-.hero p {
-    font-size: 14px;
-    opacity: 0.9;
-    max-width: 480px;
-    margin: 0 auto 1.5rem;
-}
-.hero-botones {
-    display: flex;
-    justify-content: center;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
-.btn-hero-solido, .btn-hero-outline {
-    padding: 10px 22px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-}
-.btn-hero-solido {
-    background: white;
-    color: #c2185b;
-}
-.btn-hero-outline {
-    background: transparent;
-    color: white;
-    border: 1px solid white;
-}
-
-.filtros {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.6rem;
-    padding: 1.2rem 1.5rem;
-    background: white;
-    border-bottom: 1px solid #f0c0d4;
-}
-.chip {
-    background: white;
-    border: 1px solid #f0c0d4;
-    color: #888;
-    border-radius: 999px;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.chip:hover { border-color: #e91e8c; color: #e91e8c; }
-.chip.active { background: #e91e8c; color: white; border-color: #e91e8c; }
-
-.galeria {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-}
-.galeria h2 { font-size: 1.4rem; color: #c2185b; }
-.subtitulo { font-size: 13px; color: #999; margin-bottom: 1.2rem; }
-
-.grid-productos {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1.2rem;
-}
-.tarjeta-producto {
-    background: white;
-    border: 1px solid #f0c0d4;
-    border-radius: 12px;
-    overflow: hidden;
-}
-.tarjeta-producto img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    display: block;
-}
-.sin-imagen {
-    width: 100%;
-    height: 160px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    background: #fdf0f5;
-}
-.info-producto { padding: 0.9rem 1rem; }
-.badge-producto {
-    display: inline-block;
-    background: #fce4ec;
-    color: #c2185b;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 999px;
-    margin-bottom: 6px;
-}
-.info-producto h3 { font-size: 15px; color: #333; margin-bottom: 2px; }
-.categoria-producto { font-size: 12px; color: #aaa; margin-bottom: 8px; }
-.fila-precio {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.precio { font-size: 15px; font-weight: 700; color: #e91e8c; }
-.btn-comprar {
-    background: #e91e8c;
-    color: white;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 999px;
-}
+.pedidos-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.pedidos-header h1 { color: #c2185b; font-size: 1.8rem; }
+.galeria { max-width: 700px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+.lista-pedidos { display: flex; flex-direction: column; gap: 1rem; }
+.tarjeta-pedido { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; }
+.fila-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.numero-pedido { font-weight: 700; color: #333; font-size: 14px; }
+.estado { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #fdf0f5; color: #c2185b; }
+.fila-producto { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.img-producto-pedido { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+.producto-linea { font-size: 13px; color: #555; margin-bottom: 2px; }
+.fila-info { display: flex; justify-content: space-between; font-size: 12px; color: #999; margin-top: 8px; }
+.fila-total { display: flex; justify-content: space-between; font-size: 14px; color: #e91e8c; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f5f5f5; }
+.fila-acciones-pedido { display: flex; gap: 8px; margin-top: 12px; }
+.btn-editar-pedido { flex: 1; text-align: center; background: #fdf0f5; color: #c2185b; border: 1px solid #f0c0d4; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; }
+.btn-cancelar-pedido { flex: 1; text-align: center; background: white; color: #d32f2f; border: 1px solid #f5c6c6; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; }
 .vacio { text-align: center; color: #aaa; font-size: 14px; padding: 2rem 0; }
-{% endblock %}
-
-
-{% block extra_scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const chips = document.querySelectorAll('.chip');
-    const tarjetas = document.querySelectorAll('.tarjeta-producto');
-
-    chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            chips.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-
-            const filtro = chip.dataset.filtro;
-            tarjetas.forEach(tarjeta => {
-                if (filtro === 'todo' || tarjeta.dataset.categoria === filtro) {
-                    tarjeta.style.display = '';
-                } else {
-                    tarjeta.style.display = 'none';
-                }
-            });
-        });
-    });
-});
-</script>
 {% endblock %}

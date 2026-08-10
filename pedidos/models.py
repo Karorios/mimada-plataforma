@@ -117,6 +117,12 @@ class DetallePedido(models.Model):
 
 class ConfiguracionRamo(models.Model):
     """Solo existe si DetallePedido.es_personalizado = True"""
+
+    TIPO_ARMADO_CHOICES = [
+        ('INDIVIDUAL', 'Flores individuales'),
+        ('RAMO', 'En ramo'),
+    ]
+
     detalle_pedido = models.OneToOneField(DetallePedido, on_delete=models.CASCADE, related_name='configuracion')
     cantidad_rosas = models.PositiveSmallIntegerField(default=0)
     color_rosa = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
@@ -124,5 +130,18 @@ class ConfiguracionRamo(models.Model):
     color_cinta = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
     papel_decorativo = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
     adicionales = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
+
+    pliegos_utilizados = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Pliegos de papel descontados para este ramo (calculados por tabla o ingresados manualmente en pedidos de 50/100 flores)."
+    )
+    tipo_armado = models.CharField(
+        max_length=10,
+        choices=TIPO_ARMADO_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Solo aplica para pedidos de 50 o 100 flores. Dato informativo, no afecta cálculos."
+    )
+
     def __str__(self):
         return f"Config. ramo - detalle #{self.detalle_pedido_id}"
