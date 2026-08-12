@@ -84,7 +84,9 @@ def guardar_detalle_personalizado(request):
 
     cantidad_rosas = int(request.POST.get("cantidad_rosas", 0))
     cantidad_girasoles = int(request.POST.get("cantidad_girasoles", 0))
-    total_flores = cantidad_rosas + cantidad_girasoles
+    cantidad_lirios = int(request.POST.get("cantidad_lirios", 0))
+
+    total_flores = cantidad_rosas + cantidad_girasoles + cantidad_lirios
 
     papel_id = request.POST.get("papel_id") or None
     tipo_armado = request.POST.get("tipo_armado") or None
@@ -104,12 +106,16 @@ def guardar_detalle_personalizado(request):
     detalle = {
         "cantidad_rosas": cantidad_rosas,
         "cantidad_girasoles": cantidad_girasoles,
+        "cantidad_lirios": cantidad_lirios,
+        "color_lirio_ids": request.POST.getlist("color_lirio_ids"),
         "color_cinta_ids": request.POST.getlist("color_cinta_ids"),
         "papel_id": papel_id,
         "adicionales_ids": request.POST.getlist("adicionales_ids"),
         "peluche_id": request.POST.get("peluche_id") or None,
         "precio_rosas": float(request.POST.get("precio_rosas", 0)),
         "precio_girasoles": float(request.POST.get("precio_girasoles", 0)),
+        "precio_lirios": float(request.POST.get("precio_lirios", 0)),
+        "precio_color_lirio": float(request.POST.get("precio_color_lirio", 0)),
         "precio_cinta": float(request.POST.get("precio_cinta", 0)),
         "precio_papel": float(request.POST.get("precio_papel", 0)),
         "precio_adicionales": float(request.POST.get("precio_adicionales", 0)),
@@ -121,13 +127,14 @@ def guardar_detalle_personalizado(request):
     detalle["total"] = (
             detalle["precio_rosas"]
             + detalle["precio_girasoles"]
+            + detalle["precio_lirios"]
             + detalle["precio_cinta"]
+            + detalle["precio_color_lirio"]
             + detalle["precio_papel"]
             + detalle["precio_adicionales"]
             + detalle["precio_peluche"]
     )
 
-    # Guardamos en sesión: esto funciona aunque no haya login todavía
     request.session["detalle_personalizado"] = detalle
     request.session.pop("producto", None)
 
@@ -287,8 +294,9 @@ def confirmar_pedido(request):
 
                 pliegos_necesarios = detalle_personalizado["pliegos_utilizados"]
                 total_flores = (
-                    detalle_personalizado["cantidad_rosas"]
-                    + detalle_personalizado["cantidad_girasoles"]
+                        detalle_personalizado["cantidad_rosas"]
+                        + detalle_personalizado["cantidad_girasoles"]
+                        + detalle_personalizado["cantidad_lirios"]
                 )
 
                 if not es_modo_manual(total_flores) and papel_item.stock_actual < pliegos_necesarios:
@@ -337,6 +345,7 @@ def confirmar_pedido(request):
                     detalle_pedido=detalle_pedido,
                     cantidad_rosas=detalle_personalizado["cantidad_rosas"],
                     cantidad_girasoles=detalle_personalizado["cantidad_girasoles"],
+                    cantidad_lirios=detalle_personalizado["cantidad_lirios"],
                     papel_decorativo_id=detalle_personalizado["papel_id"] or None,
                     pliegos_utilizados=detalle_personalizado["pliegos_utilizados"],
                     tipo_armado=detalle_personalizado.get("tipo_armado") or None,
@@ -345,6 +354,8 @@ def confirmar_pedido(request):
                 if detalle_personalizado["color_cinta_ids"]:
                     config.color_cinta.set(detalle_personalizado["color_cinta_ids"])
 
+                if detalle_personalizado["color_lirio_ids"]:
+                    config.color_lirio.set(detalle_personalizado["color_lirio_ids"])
                 adicionales_y_peluche = list(detalle_personalizado["adicionales_ids"])
 
                 if detalle_personalizado.get("peluche_id"):

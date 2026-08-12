@@ -25,6 +25,10 @@
                 <input type="checkbox" id="chk-incluir-girasoles">
                 Girasoles
             </label>
+            <label class="checkbox-opcion">
+                <input type="checkbox" id="chk-incluir-lirios">
+                Lirios
+            </label>
         </div>
         <p class="vacio-inline" id="aviso-flores">Selecciona al menos una opción para continuar.</p>
     </div>
@@ -57,6 +61,16 @@
             </div>
         </div>
 
+        <div class="config-card" id="card-lirios" style="display:none;">
+            <h3>Cantidad de lirios</h3>
+            <div class="opciones-lista opciones-cantidad" id="opciones-lirios">
+                <button type="button" class="opcion-btn" data-cantidad="1" data-precio="15000">1 lirio<span class="precio-opcion">$15.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="3" data-precio="40000">3 lirios<span class="precio-opcion">$40.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="5" data-precio="65000">5 lirios<span class="precio-opcion">$65.000</span></button>
+                <button type="button" class="opcion-btn" data-cantidad="7" data-precio="90000">7 lirios<span class="precio-opcion">$90.000</span></button>
+            </div>
+        </div>
+
         <div class="config-card" id="card-color-rosa" style="display:none;">
             <h3>Color de rosa</h3>
             <p class="vacio-inline">Puedes elegir hasta la misma cantidad de rosas que seleccionaste.</p>
@@ -68,6 +82,19 @@
                 {% endfor %}
             </div>
             <p class="seleccionados" id="seleccion-cinta">Sin seleccionar</p>
+        </div>
+
+        <div class="config-card" id="card-color-lirio" style="display:none;">
+            <h3>Color de lirio</h3>
+            <p class="vacio-inline">Puedes elegir hasta la misma cantidad de lirios que seleccionaste.</p>
+            <div class="swatches" id="swatches-lirios">
+                {% for cinta in cintas %}
+                <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+                {% empty %}
+                <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
+                {% endfor %}
+            </div>
+            <p class="seleccionados" id="seleccion-color-lirio">Sin seleccionar</p>
         </div>
 
         <div class="config-card">
@@ -142,7 +169,7 @@
             <h3>Tu pedido</h3>
             <div class="resumen-linea"><span>Rosas</span><span id="resumen-rosas">$0</span></div>
             <div class="resumen-linea"><span>Girasoles</span><span id="resumen-girasoles">$0</span></div>
-            <div class="resumen-linea"><span>Color rosa</span><span id="resumen-cinta">$0</span></div>
+            <div class="resumen-linea"><span>Lirios</span><span id="resumen-lirios">$0</span></div>
             <div class="resumen-linea"><span>Papel</span><span id="resumen-papel">$0</span></div>
             <div class="resumen-linea"><span>Adicionales</span><span id="resumen-adicionales">$0</span></div>
             <div class="resumen-linea"><span>Peluche</span><span id="resumen-peluche">$0</span></div>
@@ -201,6 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
     let cantidadGirasoles = 0;
     let precioGirasoles = 0;
     let precioCinta = 0;
+    let cantidadLirios = 0;
+    let precioLirios = 0;
+    let precioColorLirio = 0;
     let precioPapel = 0;
     let precioAdicionales = 0;
     let precioPeluche = 0;
@@ -208,14 +238,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const chkRosas = document.getElementById('chk-incluir-rosas');
     const chkGirasoles = document.getElementById('chk-incluir-girasoles');
+    const chkLirios = document.getElementById('chk-incluir-lirios');
+
     const cardRosas = document.getElementById('card-rosas');
     const cardGirasoles = document.getElementById('card-girasoles');
     const cardColorRosa = document.getElementById('card-color-rosa');
+    const cardColorLirio = document.getElementById('card-color-lirio');
+    const cardLirios = document.getElementById('card-lirios');
+
     const avisoFlores = document.getElementById('aviso-flores');
 
     const rosasContenedor = document.getElementById('opciones-rosas');
     const girasolesContenedor = document.getElementById('opciones-girasoles');
     const cintaContenedor = document.getElementById('swatches-cintas');
+    const lirioContenedor = document.getElementById('opciones-lirios');
+    const colorLirioContenedor = document.getElementById('swatches-lirios');
     const papelContenedor = document.getElementById('opciones-papel');
     const adicionalesContenedor = document.getElementById('opciones-adicionales');
     const pelucheContenedor = document.getElementById('opciones-peluche');
@@ -224,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const modoArmadoContenedor = document.getElementById('opciones-modo-armado');
     const inputPliegosManual = document.getElementById('input-pliegos-manual');
     const avisoPapelStock = document.getElementById('aviso-papel-stock');
-
     if (!chkRosas || !btnConfirmar) return;
 
     const RANGOS_PLIEGOS = [
@@ -235,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
 
     function totalFlores() {
-        return cantidadRosas + cantidadGirasoles;
+        return cantidadRosas + cantidadGirasoles + cantidadLirios;
     }
 
     function esModoManual() {
@@ -307,11 +343,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function recalcular() {
-        const total = precioRosas + precioGirasoles + precioCinta + precioPapel + precioAdicionales + precioPeluche;
+        const total = precioRosas + precioGirasoles + precioLirios + precioCinta + precioColorLirio + precioPapel + precioAdicionales + precioPeluche;
 
         document.getElementById('resumen-rosas').textContent = formatoMoneda(precioRosas);
         document.getElementById('resumen-girasoles').textContent = formatoMoneda(precioGirasoles);
+        document.getElementById('resumen-lirios').textContent = formatoMoneda(precioLirios);
         document.getElementById('resumen-cinta').textContent = formatoMoneda(precioCinta);
+        document.getElementById('resumen-color-lirio').textContent = formatoMoneda(precioColorLirio);
         document.getElementById('resumen-papel').textContent = formatoMoneda(precioPapel);
         document.getElementById('resumen-adicionales').textContent = formatoMoneda(precioAdicionales);
         document.getElementById('resumen-peluche').textContent = formatoMoneda(precioPeluche);
@@ -338,17 +376,40 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         recalcularColorRosa();
     }
+    function recalcularColorLirio() {
+        const seleccionados = colorLirioContenedor
+            ? Array.from(colorLirioContenedor.querySelectorAll('.swatch.activo'))
+            : [];
+        precioColorLirio = 0;
+        const nombres = seleccionados.map(sw => sw.title);
+        document.getElementById('seleccion-color-lirio').textContent = nombres.length
+            ? nombres.join(', ')
+            : 'Sin seleccionar';
+        recalcular();
+    }
+
+    function limitarColoresLirio() {
+        if (!colorLirioContenedor) return;
+        const activos = Array.from(colorLirioContenedor.querySelectorAll('.swatch.activo'));
+        if (activos.length > cantidadLirios) {
+            activos.slice(cantidadLirios).forEach(sw => sw.classList.remove('activo'));
+        }
+        recalcularColorLirio();
+    }
 
     function actualizarVisibilidadFlores() {
 
         const incluyeRosas = chkRosas.checked;
         const incluyeGirasoles = chkGirasoles.checked;
+        const incluyeLirios = chkLirios.checked;
 
         cardRosas.style.display = incluyeRosas ? 'block' : 'none';
         cardColorRosa.style.display = incluyeRosas ? 'block' : 'none';
         cardGirasoles.style.display = incluyeGirasoles ? 'block' : 'none';
+        cardLirios.style.display = incluyeLirios ? 'block' : 'none';
+        cardColorLirio.style.display = incluyeLirios ? 'block' : 'none';
 
-        avisoFlores.style.display = (incluyeRosas || incluyeGirasoles) ? 'none' : 'block';
+        avisoFlores.style.display = (incluyeRosas || incluyeGirasoles || incluyeLirios) ? 'none' : 'block';
 
         if (!incluyeRosas) {
             cantidadRosas = 0;
@@ -365,11 +426,21 @@ document.addEventListener('DOMContentLoaded', function () {
             if (girasolesContenedor) girasolesContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
         }
 
+        if (!incluyeLirios) {
+            cantidadLirios = 0;
+            precioLirios = 0;
+            precioColorLirio = 0;
+            if (lirioContenedor) lirioContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+            if (colorLirioContenedor) colorLirioContenedor.querySelectorAll('.swatch').forEach(sw => sw.classList.remove('activo'));
+            document.getElementById('seleccion-color-lirio').textContent = 'Sin seleccionar';
+        }
+
         recalcular();
     }
 
     chkRosas.addEventListener('change', actualizarVisibilidadFlores);
     chkGirasoles.addEventListener('change', actualizarVisibilidadFlores);
+    chkLirios.addEventListener('change', actualizarVisibilidadFlores)
 
     if (rosasContenedor) {
         rosasContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
@@ -379,6 +450,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (!yaActivo && [35, 50, 100].includes(nuevaCantidad) && cantidadGirasoles > 0) {
                     alert('No puedes combinar ' + nuevaCantidad + ' rosas con girasoles. Quita los girasoles primero o elige otra cantidad de rosas.');
+                    return;
+                }
+                if (!yaActivo && [35, 50, 100].includes(nuevaCantidad) && (cantidadGirasoles > 0 || cantidadLirios > 0)) {
+                    alert('No puedes combinar ' + nuevaCantidad + ' rosas con girasoles o lirios. Quita los girasoles/lirios primero o elige otra cantidad de rosas.');
                     return;
                 }
 
@@ -429,6 +504,35 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+if (lirioContenedor) {
+    lirioContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const yaActivo = btn.classList.contains('activo');
+            const nuevaCantidad = parseInt(btn.dataset.cantidad, 10);
+
+            if (!yaActivo && [35, 50, 100].includes(cantidadRosas)) {
+                alert('No puedes combinar lirios con ' + cantidadRosas + ' rosas. Elige otra cantidad de rosas primero.');
+                return;
+            }
+
+            lirioContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+
+            if (yaActivo) {
+                cantidadLirios = 0;
+                precioLirios = 0;
+            } else {
+                btn.classList.add('activo');
+                cantidadLirios = nuevaCantidad;
+                precioLirios = parseFloat(btn.dataset.precio || 0);
+            }
+
+            limitarColoresLirio();
+            actualizarModoArmado();
+            actualizarDisponibilidadPapel();
+            recalcular();
+        });
+    });
+}
     if (cintaContenedor) {
         cintaContenedor.querySelectorAll('.swatch').forEach(sw => {
             sw.addEventListener('click', () => {
@@ -449,6 +553,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 sw.classList.toggle('activo');
                 recalcularColorRosa();
+            });
+        });
+    }
+
+    if (colorLirioContenedor) {
+        colorLirioContenedor.querySelectorAll('.swatch').forEach(sw => {
+            sw.addEventListener('click', () => {
+                const yaActivo = sw.classList.contains('activo');
+                const activos = colorLirioContenedor.querySelectorAll('.swatch.activo').length;
+
+                if (!yaActivo) {
+                    if (cantidadLirios === 0) {
+                        alert('Primero selecciona la cantidad de lirios.');
+                        return;
+                    }
+
+                    if (activos >= cantidadLirios) {
+                        alert('Solo puedes elegir hasta ' + cantidadLirios + ' color(es), según la cantidad de lirios seleccionada.');
+                        return;
+                    }
+                }
+
+                sw.classList.toggle('activo');
+                recalcularColorLirio();
             });
         });
     }
@@ -506,8 +634,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnConfirmar.addEventListener('click', function () {
 
-        if (cantidadRosas < 1 && cantidadGirasoles < 1) {
-            alert('Selecciona al menos una flor (rosas o girasoles) para continuar.');
+        if (cantidadRosas < 1 && cantidadGirasoles < 1 && cantidadLirios < 1) {
+            alert('Selecciona al menos una flor (rosas, girasoles o lirios) para continuar.');
             return;
         }
 
@@ -548,6 +676,10 @@ document.addEventListener('DOMContentLoaded', function () {
             ? Array.from(adicionalesContenedor.querySelectorAll('input[type="checkbox"]:checked')).map(chk => chk.value)
             : [];
 
+        const colorLirioIds = colorLirioContenedor
+            ? Array.from(colorLirioContenedor.querySelectorAll('.swatch.activo')).map(sw => sw.dataset.id)
+            : [];
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = "{% url 'pedidos:guardar_detalle_personalizado' %}";
@@ -573,6 +705,10 @@ document.addEventListener('DOMContentLoaded', function () {
         agregarCampo('peluche_id', pelucheBtnActivo ? pelucheBtnActivo.dataset.id : '');
         agregarCampo('tipo_armado', modoArmado || '');
         agregarCampo('pliegos_manual', pliegosManual || '');
+        agregarCampo('cantidad_lirios', cantidadLirios);
+        agregarCampo('precio_lirios', precioLirios);
+        agregarCampo('precio_color_lirio', precioColorLirio);
+        colorLirioIds.forEach(id => agregarCampo('color_lirio_ids', id));
         cintaIds.forEach(id => agregarCampo('color_cinta_ids', id));
         adicionalesIds.forEach(id => agregarCampo('adicionales_ids', id));
 
@@ -609,6 +745,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 cantidadGirasoles = detalleInicial.cantidad_girasoles;
                 precioGirasoles = parseFloat(btnGirasoles.dataset.precio || 0);
             }
+        }
+
+        if (lirioContenedor && detalleInicial.cantidad_lirios) {
+            const btnLirios = lirioContenedor.querySelector('.opcion-btn[data-cantidad="' + detalleInicial.cantidad_lirios + '"]');
+            if (btnLirios) {
+                btnLirios.classList.add('activo');
+                cantidadLirios = detalleInicial.cantidad_lirios;
+                precioLirios = parseFloat(btnLirios.dataset.precio || 0);
+            }
+        }
+
+        if (colorLirioContenedor && detalleInicial.color_lirio_ids) {
+            detalleInicial.color_lirio_ids.forEach(id => {
+                const sw = colorLirioContenedor.querySelector('.swatch[data-id="' + id + '"]');
+                if (sw) sw.classList.add('activo');
+            });
+            limitarColoresLirio();
         }
 
         if (cintaContenedor && detalleInicial.color_cinta_ids) {

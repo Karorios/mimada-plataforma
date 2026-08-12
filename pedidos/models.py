@@ -125,10 +125,12 @@ class ConfiguracionRamo(models.Model):
 
     detalle_pedido = models.OneToOneField(DetallePedido, on_delete=models.CASCADE, related_name='configuracion')
     cantidad_rosas = models.PositiveSmallIntegerField(default=0)
-    color_rosa = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
     cantidad_girasoles = models.PositiveSmallIntegerField(default=0)
+    cantidad_lirios = models.PositiveSmallIntegerField(default=0)
     color_cinta = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
-    papel_decorativo = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True, blank=True)
+    color_lirio = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
+    papel_decorativo = models.ForeignKey(ItemInventario, on_delete=models.PROTECT, related_name='+', null=True,
+                                         blank=True)
     adicionales = models.ManyToManyField(ItemInventario, blank=True, related_name='+')
 
     pliegos_utilizados = models.PositiveSmallIntegerField(

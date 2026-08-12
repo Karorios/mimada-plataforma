@@ -8,6 +8,7 @@ class Categoria(models.Model):
         ('LLAVEROS', 'Llaveros'),
         ('MONAS', 'Moñas'),
         ('DETALLES_HOMBRES', 'Detalles hombres'),
+        ('BOMBAS_CHOCOLATE', 'Bombas de chocolate'),
     ]
     nombre = models.CharField(max_length=30, choices=NOMBRE_CHOICES, unique=True)
     descripcion = models.CharField(max_length=200, blank=True)
