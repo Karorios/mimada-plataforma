@@ -72,22 +72,42 @@
 
         <div class="config-card">
             <h3>Papel de decoración</h3>
+            <p class="vacio-inline" id="aviso-papel-stock" style="display:none; color:#c2185b;">No hay papel con stock suficiente para esta cantidad de flores. Prueba con otra cantidad.</p>
             <div class="opciones-lista opciones-imagenes" id="opciones-papel">
+
                 {% for papel in papeles %}
-                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id }}">
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id }}" data-stock="{{ papel.stock_actual|default:0 }}">
                     {% if papel.imagen %}
                         <img src="{{ papel.imagen.url }}" alt="{{ papel.nombre }}">
                     {% endif %}
                     <span>{{ papel.nombre }}</span>
                 </button>
-                {% empty %}
+
+             {% empty %}
                 <p class="vacio-inline">Aún no hay papeles cargados.</p>
                 {% endfor %}
             </div>
         </div>
 
+        <div class="config-card" id="card-modo-armado" style="display:none;">
+            <h3>Modo de armado (50 o 100 flores)</h3>
+            <p class="vacio-inline">Indícanos cómo quieres tus flores y cuántos pliegos de papel necesitas.</p>
+            <div class="opciones-lista" id="opciones-modo-armado">
+                <button type="button" class="opcion-btn" data-modo="INDIVIDUAL">Flores individuales</button>
+                <button type="button" class="opcion-btn" data-modo="RAMO">En ramo</button>
+            </div>
+            <div style="margin-top:12px;">
+                <label for="input-pliegos-manual" style="font-size:13px; color:#666; display:block; margin-bottom:6px;">
+                    ¿Cuántos pliegos de papel necesitas?
+                </label>
+                <input type="number" id="input-pliegos-manual" min="1" step="1"
+                       style="width:100%; padding:8px; border:1px solid #f0c0d4; border-radius:8px; box-sizing:border-box;">
+            </div>
+        </div>
+
         <div class="config-card">
             <h3>Adicionales</h3>
+
             <div class="opciones-lista" id="opciones-adicionales">
                 {% for extra in adicionales %}
                 <label class="checkbox-opcion">
@@ -184,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let precioPapel = 0;
     let precioAdicionales = 0;
     let precioPeluche = 0;
+    let modoArmado = null;
 
     const chkRosas = document.getElementById('chk-incluir-rosas');
     const chkGirasoles = document.getElementById('chk-incluir-girasoles');
@@ -199,8 +220,87 @@ document.addEventListener('DOMContentLoaded', function () {
     const adicionalesContenedor = document.getElementById('opciones-adicionales');
     const pelucheContenedor = document.getElementById('opciones-peluche');
     const btnConfirmar = document.getElementById('btn-confirmar-detalle');
+    const cardModoArmado = document.getElementById('card-modo-armado');
+    const modoArmadoContenedor = document.getElementById('opciones-modo-armado');
+    const inputPliegosManual = document.getElementById('input-pliegos-manual');
+    const avisoPapelStock = document.getElementById('aviso-papel-stock');
 
     if (!chkRosas || !btnConfirmar) return;
+
+    const RANGOS_PLIEGOS = [
+        { min: 1, max: 1, pliegos: 1 },
+        { min: 2, max: 4, pliegos: 2 },
+        { min: 5, max: 7, pliegos: 4 },
+        { min: 8, max: 35, pliegos: 6 },
+    ];
+
+    function totalFlores() {
+        return cantidadRosas + cantidadGirasoles;
+    }
+
+    function esModoManual() {
+        const total = totalFlores();
+        return total === 50 || total === 100;
+    }
+
+    function calcularPliegosTabla(total) {
+        for (const rango of RANGOS_PLIEGOS) {
+            if (total >= rango.min && total <= rango.max) return rango.pliegos;
+        }
+        return null;
+    }
+
+    function actualizarModoArmado() {
+        if (esModoManual()) {
+            cardModoArmado.style.display = 'block';
+        } else {
+            cardModoArmado.style.display = 'none';
+            modoArmado = null;
+            if (modoArmadoContenedor) {
+                modoArmadoContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+            }
+            if (inputPliegosManual) inputPliegosManual.value = '';
+        }
+    }
+
+    function actualizarDisponibilidadPapel() {
+        if (!papelContenedor) return;
+
+        const botones = papelContenedor.querySelectorAll('.opcion-btn');
+        const total = totalFlores();
+
+        if (esModoManual() || total === 0) {
+            // Sin filtro: modo manual no valida stock, y sin flores aún no hay nada que filtrar
+            botones.forEach(b => {
+                b.disabled = false;
+                b.style.opacity = '1';
+                b.style.cursor = 'pointer';
+            });
+            avisoPapelStock.style.display = 'none';
+            return;
+        }
+
+        const pliegosNecesarios = calcularPliegosTabla(total);
+        let hayDisponibles = false;
+
+        botones.forEach(btn => {
+            const stock = parseFloat(btn.dataset.stock || 0);
+            const alcanza = stock >= pliegosNecesarios;
+
+            btn.disabled = !alcanza;
+            btn.style.opacity = alcanza ? '1' : '0.35';
+            btn.style.cursor = alcanza ? 'pointer' : 'not-allowed';
+
+            if (alcanza) hayDisponibles = true;
+
+            if (!alcanza && btn.classList.contains('activo')) {
+                btn.classList.remove('activo');
+                precioPapel = 0;
+            }
+        });
+
+        avisoPapelStock.style.display = hayDisponibles ? 'none' : 'block';
+    }
 
     function formatoMoneda(valor) {
         return '$' + valor.toLocaleString('es-CO');
@@ -275,6 +375,13 @@ document.addEventListener('DOMContentLoaded', function () {
         rosasContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const yaActivo = btn.classList.contains('activo');
+                const nuevaCantidad = parseInt(btn.dataset.cantidad, 10);
+
+                if (!yaActivo && [35, 50, 100].includes(nuevaCantidad) && cantidadGirasoles > 0) {
+                    alert('No puedes combinar ' + nuevaCantidad + ' rosas con girasoles. Quita los girasoles primero o elige otra cantidad de rosas.');
+                    return;
+                }
+
                 rosasContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
 
                 if (yaActivo) {
@@ -282,11 +389,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     precioRosas = 0;
                 } else {
                     btn.classList.add('activo');
-                    cantidadRosas = parseInt(btn.dataset.cantidad, 10);
+                    cantidadRosas = nuevaCantidad;
                     precioRosas = parseFloat(btn.dataset.precio || 0);
                 }
 
                 limitarColores();
+                actualizarModoArmado();
+                actualizarDisponibilidadPapel();
                 recalcular();
             });
         });
@@ -296,6 +405,12 @@ document.addEventListener('DOMContentLoaded', function () {
         girasolesContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const yaActivo = btn.classList.contains('activo');
+
+                if (!yaActivo && [35, 50, 100].includes(cantidadRosas)) {
+                    alert('No puedes combinar girasoles con ' + cantidadRosas + ' rosas. Elige otra cantidad de rosas primero.');
+                    return;
+                }
+
                 girasolesContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
 
                 if (yaActivo) {
@@ -307,6 +422,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     precioGirasoles = parseFloat(btn.dataset.precio || 0);
                 }
 
+                actualizarModoArmado();
+                actualizarDisponibilidadPapel();
                 recalcular();
             });
         });
@@ -343,6 +460,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.add('activo');
                 precioPapel = parseFloat(btn.dataset.precio || 0);
                 recalcular();
+            });
+        });
+    }
+    if (modoArmadoContenedor) {
+        modoArmadoContenedor.querySelectorAll('.opcion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                modoArmadoContenedor.querySelectorAll('.opcion-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                modoArmado = btn.dataset.modo;
             });
         });
     }
@@ -385,6 +511,27 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const totalFloresActual = totalFlores();
+        let pliegosManual = 0;
+
+        if (esModoManual()) {
+            if (!modoArmado) {
+                alert('Selecciona si las flores van individuales o en ramo.');
+                return;
+            }
+            pliegosManual = parseInt(inputPliegosManual.value || 0, 10);
+            if (!pliegosManual || pliegosManual < 1) {
+                alert('Indica cuántos pliegos de papel necesitas.');
+                return;
+            }
+        } else {
+            const papelActivo = papelContenedor ? papelContenedor.querySelector('.opcion-btn.activo') : null;
+            if (!papelActivo) {
+                alert('Selecciona un papel decorativo (verifica que haya stock suficiente para tu cantidad).');
+                return;
+            }
+        }
+
         const cintaIds = cintaContenedor
             ? Array.from(cintaContenedor.querySelectorAll('.swatch.activo')).map(sw => sw.dataset.id)
             : [];
@@ -424,7 +571,8 @@ document.addEventListener('DOMContentLoaded', function () {
         agregarCampo('papel_id', papelBtnActivo ? papelBtnActivo.dataset.id : '');
         agregarCampo('precio_peluche', precioPeluche);
         agregarCampo('peluche_id', pelucheBtnActivo ? pelucheBtnActivo.dataset.id : '');
-
+        agregarCampo('tipo_armado', modoArmado || '');
+        agregarCampo('pliegos_manual', pliegosManual || '');
         cintaIds.forEach(id => agregarCampo('color_cinta_ids', id));
         adicionalesIds.forEach(id => agregarCampo('adicionales_ids', id));
 
@@ -501,6 +649,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    actualizarModoArmado();
+    actualizarDisponibilidadPapel();
     recalcular();
 
 });

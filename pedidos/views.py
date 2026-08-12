@@ -2,12 +2,20 @@ from urllib.parse import quote
 from datetime import date
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from inventario.models import ItemInventario, CategoriaInventario
 from catalogo.models import Producto
 from .forms import PedidoForm
-from .models import Pedido, DetallePedido
+from .models import Pedido, DetallePedido, ConfiguracionRamo
+from .utils import calcular_pliegos, es_modo_manual
 
+
+class StockInsuficiente(Exception):
+    """Señal interna para abortar la transacción cuando no alcanza el papel."""
+    pass
 
 @login_required(login_url="usuarios:login")
 def inicio(request):
@@ -74,11 +82,30 @@ def guardar_detalle_personalizado(request):
     if request.method != "POST":
         return redirect("pedidos:crear_detalle")
 
+    cantidad_rosas = int(request.POST.get("cantidad_rosas", 0))
+    cantidad_girasoles = int(request.POST.get("cantidad_girasoles", 0))
+    total_flores = cantidad_rosas + cantidad_girasoles
+
+    papel_id = request.POST.get("papel_id") or None
+    tipo_armado = request.POST.get("tipo_armado") or None
+    pliegos_manual_raw = request.POST.get("pliegos_manual")
+    pliegos_manual = int(pliegos_manual_raw) if pliegos_manual_raw else None
+
+    try:
+        pliegos_utilizados = calcular_pliegos(total_flores, pliegos_manual)
+    except ValidationError as e:
+        messages.error(request, e.message)
+        return redirect("pedidos:crear_detalle")
+
+    if not es_modo_manual(total_flores) and not papel_id:
+        messages.error(request, "Selecciona un papel decorativo para continuar.")
+        return redirect("pedidos:crear_detalle")
+
     detalle = {
-        "cantidad_rosas": int(request.POST.get("cantidad_rosas", 0)),
-        "cantidad_girasoles": int(request.POST.get("cantidad_girasoles", 0)),
+        "cantidad_rosas": cantidad_rosas,
+        "cantidad_girasoles": cantidad_girasoles,
         "color_cinta_ids": request.POST.getlist("color_cinta_ids"),
-        "papel_id": request.POST.get("papel_id") or None,
+        "papel_id": papel_id,
         "adicionales_ids": request.POST.getlist("adicionales_ids"),
         "peluche_id": request.POST.get("peluche_id") or None,
         "precio_rosas": float(request.POST.get("precio_rosas", 0)),
@@ -87,6 +114,8 @@ def guardar_detalle_personalizado(request):
         "precio_papel": float(request.POST.get("precio_papel", 0)),
         "precio_adicionales": float(request.POST.get("precio_adicionales", 0)),
         "precio_peluche": float(request.POST.get("precio_peluche", 0)),
+        "tipo_armado": tipo_armado,
+        "pliegos_utilizados": pliegos_utilizados,
     }
 
     detalle["total"] = (
@@ -221,6 +250,7 @@ def resumen(request):
             "total": total,
         },
     )
+
 @login_required(login_url="usuarios:login")
 def confirmar_pedido(request):
 
@@ -246,58 +276,85 @@ def confirmar_pedido(request):
     valor_domicilio = calcular_domicilio(datos["tipo_entrega"])
     total = producto_precio + valor_domicilio
 
-    pedido = Pedido.objects.create(
+    try:
+        with transaction.atomic():
 
-        cliente=request.user,
+            if detalle_personalizado and detalle_personalizado.get("papel_id"):
 
-        tipo_entrega=datos["tipo_entrega"],
-        es_regalo=datos["es_regalo"],
-        entrega_anonima=datos["entrega_anonima"],
+                papel_item = ItemInventario.objects.select_for_update().get(
+                    pk=detalle_personalizado["papel_id"]
+                )
 
-        nombre_destinatario=datos["nombre_destinatario"],
-        telefono_destinatario=datos["telefono_destinatario"],
+                pliegos_necesarios = detalle_personalizado["pliegos_utilizados"]
+                total_flores = (
+                    detalle_personalizado["cantidad_rosas"]
+                    + detalle_personalizado["cantidad_girasoles"]
+                )
 
-        mensaje=datos["mensaje"],
+                if not es_modo_manual(total_flores) and papel_item.stock_actual < pliegos_necesarios:
+                    messages.error(request, "Ese papel ya no está disponible, elige otro.")
+                    raise StockInsuficiente()
 
-        direccion=datos["direccion"],
-        barrio=datos["barrio"],
-        ciudad=datos["ciudad"],
-        referencia=datos["referencia"],
+                papel_item.stock_actual -= pliegos_necesarios
+                papel_item.save()
 
-        fecha_entrega=date.fromisoformat(datos["fecha_entrega"]),
-        hora_entrega=datos["hora_entrega"],
-        valor_domicilio=valor_domicilio,
-        total=total,
-    )
+            pedido = Pedido.objects.create(
 
-    detalle_pedido = DetallePedido.objects.create(
-        pedido=pedido,
-        producto=producto,
-        es_personalizado=detalle_personalizado is not None,
-        cantidad=1,
-        precio_unitario=producto_precio,
-        subtotal=producto_precio,
-    )
+                cliente=request.user,
 
-    if detalle_personalizado:
+                tipo_entrega=datos["tipo_entrega"],
+                es_regalo=datos["es_regalo"],
+                entrega_anonima=datos["entrega_anonima"],
 
-        config = ConfiguracionRamo.objects.create(
-            detalle_pedido=detalle_pedido,
-            cantidad_rosas=detalle_personalizado["cantidad_rosas"],
-            cantidad_girasoles=detalle_personalizado["cantidad_girasoles"],
-            papel_decorativo_id=detalle_personalizado["papel_id"] or None,
-        )
+                nombre_destinatario=datos["nombre_destinatario"],
+                telefono_destinatario=datos["telefono_destinatario"],
 
-        if detalle_personalizado["color_cinta_ids"]:
-            config.color_cinta.set(detalle_personalizado["color_cinta_ids"])
+                mensaje=datos["mensaje"],
 
-        adicionales_y_peluche = list(detalle_personalizado["adicionales_ids"])
+                direccion=datos["direccion"],
+                barrio=datos["barrio"],
+                ciudad=datos["ciudad"],
+                referencia=datos["referencia"],
 
-        if detalle_personalizado.get("peluche_id"):
-            adicionales_y_peluche.append(detalle_personalizado["peluche_id"])
+                fecha_entrega=date.fromisoformat(datos["fecha_entrega"]),
+                hora_entrega=datos["hora_entrega"],
+                valor_domicilio=valor_domicilio,
+                total=total,
+            )
 
-        if adicionales_y_peluche:
-            config.adicionales.set(adicionales_y_peluche)
+            detalle_pedido = DetallePedido.objects.create(
+                pedido=pedido,
+                producto=producto,
+                es_personalizado=detalle_personalizado is not None,
+                cantidad=1,
+                precio_unitario=producto_precio,
+                subtotal=producto_precio,
+            )
+
+            if detalle_personalizado:
+
+                config = ConfiguracionRamo.objects.create(
+                    detalle_pedido=detalle_pedido,
+                    cantidad_rosas=detalle_personalizado["cantidad_rosas"],
+                    cantidad_girasoles=detalle_personalizado["cantidad_girasoles"],
+                    papel_decorativo_id=detalle_personalizado["papel_id"] or None,
+                    pliegos_utilizados=detalle_personalizado["pliegos_utilizados"],
+                    tipo_armado=detalle_personalizado.get("tipo_armado") or None,
+                )
+
+                if detalle_personalizado["color_cinta_ids"]:
+                    config.color_cinta.set(detalle_personalizado["color_cinta_ids"])
+
+                adicionales_y_peluche = list(detalle_personalizado["adicionales_ids"])
+
+                if detalle_personalizado.get("peluche_id"):
+                    adicionales_y_peluche.append(detalle_personalizado["peluche_id"])
+
+                if adicionales_y_peluche:
+                    config.adicionales.set(adicionales_y_peluche)
+
+    except StockInsuficiente:
+        return redirect("pedidos:resumen")
 
     if datos["tipo_entrega"] == "DOMICILIO":
         bloque_entrega = f"""Dirección:
