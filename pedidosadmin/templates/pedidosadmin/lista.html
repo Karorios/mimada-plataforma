@@ -288,13 +288,13 @@
                                 </div>
                                 {% if pedido_detalle.tipo_entrega == 'DOMICILIO' %}
                                 <div class="direccion">
-                                    📍 {{ pedido_detalle.direccion }}{% if pedido_detalle.barrio %}, {{ pedido_detalle.barrio }}{% endif %}, {{ pedido_detalle.ciudad }}
+                                    {{ pedido_detalle.direccion }}{% if pedido_detalle.barrio %}, {{ pedido_detalle.barrio }}{% endif %}, {{ pedido_detalle.ciudad }}
                                     {% if pedido_detalle.referencia %}<br><span style="color:#999;">Ref: {{ pedido_detalle.referencia }}</span>{% endif %}
                                 </div>
                                 {% endif %}
 
                                 {% if pedido_detalle.mensaje %}
-                                <div class="nota-cliente">💌 "{{ pedido_detalle.mensaje }}"</div>
+                                <div class="nota-cliente"> "{{ pedido_detalle.mensaje }}"</div>
                                 {% endif %}
 
                                 <div class="acciones">

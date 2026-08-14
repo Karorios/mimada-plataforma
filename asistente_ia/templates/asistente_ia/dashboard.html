@@ -74,11 +74,32 @@
     </aside>
 
     <main class="main">
-        <div class="empty-state">
-            <div class="icono">🤖🌸</div>
-            <h2>Asistente IA — Próximamente</h2>
-            <p>Aquí vas a ver predicciones de ventas y alertas inteligentes de inventario basadas en tu historial real, para que nunca te quedes sin stock antes de una fecha comercial importante.</p>
+        <div class="main-header">
+            <h2>Asistente IA</h2>
+            <p>Alertas de inventario basadas en tu historial real de ventas.</p>
         </div>
+
+        {% if nombre_fecha_proxima %}
+        <div class="banner-fecha">
+            📅 Próxima fecha comercial: <strong>{{ nombre_fecha_proxima }}</strong> — {{ fecha_proxima|date:"d \d\e F" }}
+        </div>
+        {% endif %}
+
+        <div class="alertas-grid">
+            {% for alerta in alertas %}
+            <div class="alerta-card {{ alerta.nivel }}">
+                <div class="alerta-texto">{{ alerta.mensaje }}</div>
+                <span class="alerta-badge {{ alerta.nivel }}">
+                    {% if alerta.nivel == 'CRITICO' %}Crítico
+                    {% elif alerta.nivel == 'ALERTA' %}Alerta
+                    {% else %}Al día{% endif %}
+                </span>
+            </div>
+            {% empty %}
+            <div class="vacio">Todavía no hay suficiente historial o inventario para calcular alertas.</div>
+            {% endfor %}
+        </div>
+
     </main>
 </body>
 </html>

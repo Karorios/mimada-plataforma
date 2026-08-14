@@ -1,7 +1,7 @@
 import openpyxl
 from datetime import date, timedelta
 from django.core.management.base import BaseCommand
-from asistente_ia.models import HistorialVentas
+from asistente_ia.fechas_comerciales import detectar_fecha_comercial
 
 
 def segundo_domingo_mayo(year):
