@@ -137,9 +137,12 @@
 
             <div class="opciones-lista" id="opciones-adicionales">
                 {% for extra in adicionales %}
-                <label class="checkbox-opcion">
+                <label class="checkbox-opcion checkbox-imagen">
                     <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:0 }}">
-                    {{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio }}){% endif %}
+                    {% if extra.imagen %}
+                        <img src="{{ extra.imagen.url }}" alt="{{ extra.nombre }}">
+                    {% endif %}
+                    <span>{{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio }}){% endif %}</span>
                 </label>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay adicionales cargados.</p>
@@ -165,12 +168,11 @@
             <p class="seleccionados" id="seleccion-peluche">Sin peluche</p>
         </div>
 
-        <div class="config-card resumen-card">
+       <div class="config-card resumen-card">
             <h3>Tu pedido</h3>
             <div class="resumen-linea"><span>Rosas</span><span id="resumen-rosas">$0</span></div>
             <div class="resumen-linea"><span>Girasoles</span><span id="resumen-girasoles">$0</span></div>
             <div class="resumen-linea"><span>Lirios</span><span id="resumen-lirios">$0</span></div>
-            <div class="resumen-linea"><span>Papel</span><span id="resumen-papel">$0</span></div>
             <div class="resumen-linea"><span>Adicionales</span><span id="resumen-adicionales">$0</span></div>
             <div class="resumen-linea"><span>Peluche</span><span id="resumen-peluche">$0</span></div>
             <div class="resumen-linea total"><span>Total</span><span id="resumen-total">$0</span></div>
@@ -183,7 +185,6 @@
                 {% endif %}
             </p>
         </div>
-
     </div>
 
 </section>
@@ -211,7 +212,8 @@
 .opcion-btn { background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #666; cursor: pointer; }
 .opcion-btn.activo { background: #e91e8c; color: white; border-color: #e91e8c; }
 .checkbox-opcion { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-.resumen-card { background: #fdf0f5; }
+.checkbox-opcion.checkbox-imagen { flex-direction: column; width: 90px; text-align: center; padding: 10px 8px; }
+.checkbox-opcion.checkbox-imagen img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }.resumen-card { background: #fdf0f5; }
 .resumen-linea { display: flex; justify-content: space-between; font-size: 13px; color: #666; padding: 6px 0; border-bottom: 1px dashed #f0c0d4; }
 .resumen-linea.total { border-bottom: none; font-weight: 700; color: #c2185b; font-size: 15px; margin-top: 6px; }
 .btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: pointer; }
@@ -230,8 +232,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let precioCinta = 0;
     let cantidadLirios = 0;
     let precioLirios = 0;
-    let precioColorLirio = 0;
-    let precioPapel = 0;
     let precioAdicionales = 0;
     let precioPeluche = 0;
     let modoArmado = null;
@@ -343,14 +343,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function recalcular() {
-        const total = precioRosas + precioGirasoles + precioLirios + precioCinta + precioColorLirio + precioPapel + precioAdicionales + precioPeluche;
+        const total = precioRosas + precioGirasoles + precioLirios + precioAdicionales + precioPeluche;
 
         document.getElementById('resumen-rosas').textContent = formatoMoneda(precioRosas);
         document.getElementById('resumen-girasoles').textContent = formatoMoneda(precioGirasoles);
         document.getElementById('resumen-lirios').textContent = formatoMoneda(precioLirios);
-        document.getElementById('resumen-cinta').textContent = formatoMoneda(precioCinta);
-        document.getElementById('resumen-color-lirio').textContent = formatoMoneda(precioColorLirio);
-        document.getElementById('resumen-papel').textContent = formatoMoneda(precioPapel);
         document.getElementById('resumen-adicionales').textContent = formatoMoneda(precioAdicionales);
         document.getElementById('resumen-peluche').textContent = formatoMoneda(precioPeluche);
         document.getElementById('resumen-total').textContent = formatoMoneda(total);
