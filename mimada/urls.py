@@ -4,6 +4,8 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from catalogo import views as catalogo_views
+from usuarios.views import CustomPasswordResetView
+
 
 urlpatterns = [
     path('', catalogo_views.inicio, name='home'),
@@ -16,10 +18,7 @@ urlpatterns = [
     path('pedidosadmin/', include('pedidosadmin.urls')),
     path('panelprincipaladmin/', include('panelprincipaladmin.urls')),
     path('asistente-ia/', include('asistente_ia.urls')),
-    path('password-reset/',
-         auth_views.PasswordResetView.as_view(
-             template_name='usuarios/password_reset.html'
-         ), name='password_reset'),
+    path('password-reset/', CustomPasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/',
          auth_views.PasswordResetDoneView.as_view(
              template_name='usuarios/password_reset_done.html'

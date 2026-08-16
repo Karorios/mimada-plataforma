@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import Usuario
+from django.contrib.auth.forms import PasswordResetForm
+
 
 class LoginForm(AuthenticationForm):
     username = forms.EmailField(
@@ -78,9 +80,17 @@ class EditarPerfilForm(forms.ModelForm):
                 raise forms.ValidationError('Ese correo ya tiene una cuenta asociada.')
             return email
 
-        def save(self, commit=True):
-            usuario = super().save(commit=False)
-            usuario.username = self.cleaned_data['email']
-            if commit:
-                usuario.save()
-            return usuario
+            def save(self, commit=True):
+                usuario = super().save(commit=False)
+                usuario.username = self.cleaned_data['email']
+                if commit:
+                    usuario.save()
+                return usuario
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not Usuario.objects.filter(email=email).exists():
+            raise forms.ValidationError('Ese correo no está registrado en Mimada.')
+        return email

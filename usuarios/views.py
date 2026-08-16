@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from catalogo.models import Producto
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import LoginForm, RegistroForm, EditarPerfilForm
+from django.contrib.auth import views as auth_views
+from .forms import CustomPasswordResetForm
 
 def login_view(request):
     if request.method == 'POST':
@@ -13,12 +15,15 @@ def login_view(request):
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Correo o contraseña incorrectos')
+            correo = request.POST.get('username')
+            if correo and not Usuario.objects.filter(username=correo).exists():
+                messages.error(request, 'Ese correo no está registrado. ¿Quieres crear una cuenta?')
+            else:
+                messages.error(request, 'Contraseña incorrecta. Intenta de nuevo.')
     else:
         form = LoginForm()
 
     return render(request, 'usuarios/login.html', {'form': form})
-
 
 def registro_view(request):
     if request.method == 'POST':
@@ -86,3 +91,9 @@ def mi_cuenta_view(request):
         form = EditarPerfilForm(instance=request.user)
 
     return render(request, 'usuarios/mi_cuenta.html', {'form': form})
+
+
+
+class CustomPasswordResetView(auth_views.PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'usuarios/password_reset.html'
