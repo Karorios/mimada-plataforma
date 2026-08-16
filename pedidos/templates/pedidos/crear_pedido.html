@@ -22,6 +22,12 @@
                 ➕ Crear un ramo nuevo
             </a>
         </div>
+        {% else %}
+        <div class="editar-ramo-opciones">
+            <a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-editar-ramo">
+                ← Volver
+            </a>
+        </div>
         {% endif %}
         <form method="post">
 
@@ -33,6 +39,19 @@
                 value="{{ producto }}"
             >
 
+            <input
+                type="hidden"
+                name="cantidad"
+                value="{{ cantidad }}"
+            >
+
+            <input
+                type="hidden"
+                name="cantidad"
+                value="{{ cantidad }}"
+            >
+
+            <p class="nota-cantidad">Cantidad seleccionada: <strong>{{ cantidad }}</strong></p>
             {{ form.as_p }}
 
             <button type="submit" class="btn-continuar">
@@ -92,6 +111,16 @@ h1{
 .subtitulo{
     color:#777;
     margin-bottom:30px;
+}
+
+.nota-cantidad{
+    background:#fff7fa;
+    border:1px solid #f3d8e3;
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:14px;
+    color:#c2185b;
+    margin-bottom:20px;
 }
 
 form p{

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
@@ -36,15 +36,22 @@ def inicio(request):
     })
 
 def lista_productos(request):
-    productos = Producto.objects.all()
-    categorias = Categoria.objects.all()
-    return render(request, 'catalogo/lista.html', {
-        'productos': productos,
-        'categorias': categorias,
-    })
+        productos = Producto.objects.all()
+        categorias = Categoria.objects.all()
+        return render(request, 'catalogo/lista.html', {
+            'productos': productos,
+            'categorias': categorias,
+        })
+
+def detalle_producto(request, pk):
+        producto = get_object_or_404(Producto, pk=pk)
+        return render(request, 'catalogo/detalle_producto.html', {
+            'producto': producto,
+        })
 
 @login_required(login_url='usuarios:login')
 def crear_producto(request):
+
     if not request.user.es_admin:
         raise PermissionDenied
 

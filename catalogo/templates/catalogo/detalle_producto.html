@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada - {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+
+<section class="detalle-producto">
+    <a href="{% url 'home' %}" class="link-volver">← Volver</a>
+    <div class="detalle-grid">
+        <div class="detalle-imagen">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+                <div class="sin-imagen">🌸</div>
+            {% endif %}
+        </div>
+
+        <div class="detalle-info">
+            <p class="detalle-categoria">{{ producto.categoria.get_nombre_display }}</p>
+            <h1>{{ producto.nombre }}</h1>
+
+            {% if producto.descripcion %}
+                <p class="detalle-descripcion">{{ producto.descripcion }}</p>
+            {% endif %}
+
+            <p class="detalle-precio">${{ producto.precio }}</p>
+
+            {% if producto.disponible %}
+                <form method="get" action="{% url 'pedidos:crear_pedido' producto.id %}" class="form-cantidad">
+                    <label for="input-cantidad">Cantidad</label>
+                    <div class="selector-cantidad">
+                        <button type="button" id="btn-menos" class="btn-cantidad">−</button>
+                        <input type="number" id="input-cantidad" name="cantidad" value="1" min="1" readonly>
+                        <button type="button" id="btn-mas" class="btn-cantidad">+</button>
+                    </div>
+                    <button type="submit" class="btn-comprar-detalle">Comprar</button>
+                </form>
+            {% else %}
+                <p class="detalle-agotado">Agotado por ahora</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_style %}
+.detalle-producto {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+}
+.link-volver {
+    display: inline-block;
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 1.2rem;
+}
+.link-volver:hover { color: #e91e8c; }
+.detalle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+.detalle-imagen img {
+    width: 100%;
+    border-radius: 14px;
+    object-fit: cover;
+    max-height: 480px;
+}
+.detalle-imagen .sin-imagen {
+    width: 100%;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background: #fdf0f5;
+    border-radius: 14px;
+}
+.detalle-categoria {
+    font-size: 12px;
+    color: #e91e8c;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+}
+.detalle-info h1 {
+    font-size: 1.6rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+.detalle-descripcion {
+    font-size: 14px;
+    color: #777;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+}
+.detalle-precio {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #c2185b;
+    margin-bottom: 1.4rem;
+}
+.form-cantidad {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.form-cantidad label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 600;
+    width: 100%;
+}
+.selector-cantidad {
+    display: flex;
+    align-items: center;
+    border: 1px solid #f0c0d4;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.btn-cantidad {
+    background: #fdf0f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    color: #c2185b;
+    cursor: pointer;
+}
+.btn-cantidad:hover { background: #f0c0d4; }
+#input-cantidad {
+    width: 48px;
+    text-align: center;
+    border: none;
+    font-size: 14px;
+    padding: 8px 0;
+}
+.btn-comprar-detalle {
+    background: #e91e8c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-comprar-detalle:hover { background: #c2185b; }
+.detalle-agotado {
+    color: #999;
+    font-style: italic;
+}
+@media (max-width: 700px) {
+    .detalle-grid { grid-template-columns: 1fr; }
+}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('input-cantidad');
+    const btnMenos = document.getElementById('btn-menos');
+    const btnMas = document.getElementById('btn-mas');
+    if (!input) return;
+
+    btnMenos.addEventListener('click', () => {
+        const val = parseInt(input.value, 10) || 1;
+        if (val > 1) input.value = val - 1;
+    });
+    btnMas.addEventListener('click', () => {
+        const val = parseInt(input.value, 10) || 1;
+        input.value = val + 1;
+    });
+});
+</script>
+{% endblock %}

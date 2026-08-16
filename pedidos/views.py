@@ -186,6 +186,14 @@ def crear_pedido(request, producto_id):
 
     producto = get_object_or_404(Producto, pk=producto_id)
 
+    cantidad_raw = request.POST.get("cantidad") or request.GET.get("cantidad", 1)
+    try:
+        cantidad = int(cantidad_raw)
+    except (TypeError, ValueError):
+        cantidad = 1
+    if cantidad < 1:
+        cantidad = 1
+
     if request.method == "POST":
 
         form = PedidoForm(request.POST)
@@ -198,6 +206,7 @@ def crear_pedido(request, producto_id):
 
             request.session["pedido"] = datos
             request.session["producto"] = producto.id
+            request.session["cantidad_producto"] = cantidad
 
             return redirect("pedidos:resumen")
 
@@ -210,6 +219,7 @@ def crear_pedido(request, producto_id):
         {
             "form": form,
             "producto": producto,
+            "cantidad": cantidad,
         },
     )
 
@@ -227,10 +237,14 @@ def resumen(request):
     if producto_id:
         producto = get_object_or_404(Producto, pk=producto_id)
         producto_nombre = producto.nombre
-        producto_precio = producto.precio
+        cantidad = request.session.get("cantidad_producto", 1)
+        precio_unitario = producto.precio
+        producto_precio = precio_unitario * cantidad
     elif detalle_personalizado:
         producto_nombre = "Ramo personalizado"
-        producto_precio = detalle_personalizado["total"]
+        cantidad = 1
+        precio_unitario = detalle_personalizado["total"]
+        producto_precio = precio_unitario
     else:
         return redirect("pedidos:inicio")
 
@@ -249,6 +263,8 @@ def resumen(request):
         {
             "datos": datos,
             "producto_nombre": producto_nombre,
+            "cantidad": cantidad,
+            "precio_unitario": precio_unitario,
             "producto_precio": producto_precio,
             "tipo_entrega_display": tipo_entrega_display,
             "es_domicilio": tipo_entrega == "DOMICILIO",
@@ -257,7 +273,6 @@ def resumen(request):
             "total": total,
         },
     )
-
 @login_required(login_url="usuarios:login")
 def confirmar_pedido(request):
 
@@ -272,11 +287,15 @@ def confirmar_pedido(request):
     if producto_id:
         producto = get_object_or_404(Producto, pk=producto_id)
         producto_nombre = producto.nombre
-        producto_precio = producto.precio
+        cantidad = request.session.get("cantidad_producto", 1)
+        precio_unitario = producto.precio
+        producto_precio = precio_unitario * cantidad
     elif detalle_personalizado:
         producto = None
         producto_nombre = "Ramo personalizado"
-        producto_precio = detalle_personalizado["total"]
+        cantidad = 1
+        precio_unitario = detalle_personalizado["total"]
+        producto_precio = precio_unitario
     else:
         return redirect("pedidos:inicio")
 
@@ -330,14 +349,20 @@ def confirmar_pedido(request):
                 total=total,
             )
 
-            detalle_pedido = DetallePedido.objects.create(
-                pedido=pedido,
-                producto=producto,
-                es_personalizado=detalle_personalizado is not None,
-                cantidad=1,
-                precio_unitario=producto_precio,
-                subtotal=producto_precio,
-            )
+            if producto_id:
+                producto = get_object_or_404(Producto, pk=producto_id)
+                producto_nombre = producto.nombre
+                cantidad = request.session.get("cantidad_producto", 1)
+                precio_unitario = producto.precio
+                producto_precio = precio_unitario * cantidad
+            elif detalle_personalizado:
+                producto = None
+                producto_nombre = "Ramo personalizado"
+                cantidad = 1
+                precio_unitario = detalle_personalizado["total"]
+                producto_precio = precio_unitario
+            else:
+                return redirect("pedidos:inicio")
 
             if detalle_personalizado:
 
@@ -437,6 +462,7 @@ Quedo atento(a) a la información para realizar el pago.
     request.session.pop("pedido", None)
     request.session.pop("producto", None)
     request.session.pop("detalle_personalizado", None)
+    request.session.pop("cantidad_producto", None)
 
     return redirect(url)
 

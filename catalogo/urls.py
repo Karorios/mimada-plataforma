@@ -4,8 +4,9 @@ from . import views
 app_name = 'catalogo'
 
 urlpatterns = [
-    # Catálogo clientes
+# Catálogo clientes
     path('lista/', views.lista_productos, name='lista'),
+    path('producto/<int:pk>/', views.detalle_producto, name='detalle_producto'),
 
     # Crear producto (ya existe)
     path('crear-producto/', views.crear_producto, name='crear_producto'),
