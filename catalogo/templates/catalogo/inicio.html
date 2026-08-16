@@ -5,6 +5,43 @@
 
 {% block content %}
 
+{% if items_carrusel %}
+<section class="hero-carrusel">
+    <div class="carrusel-track">
+        {% for item in items_carrusel %}
+        <div class="carrusel-slide">
+            {% if item.imagen_url %}
+            <img src="{{ item.imagen_url }}" alt="{% if item.titulo %}{{ item.titulo }}{% elif item.producto %}{{ item.producto.nombre }}{% endif %}">
+            {% endif %}
+            <div class="carrusel-overlay"></div>
+            <div class="carrusel-contenido">
+                {% if item.tipo == 'BANNER' %}
+                    {% if item.titulo %}<h2>{{ item.titulo }}</h2>{% endif %}
+                    {% if item.subtitulo %}<p>{{ item.subtitulo }}</p>{% endif %}
+                    {% if item.url_destino %}
+                        <a href="{{ item.url_destino }}" class="btn-hero-solido">{{ item.texto_boton }}</a>
+                    {% endif %}
+                {% elif item.producto %}
+                    <h2>{{ item.producto.nombre }}</h2>
+                    <p>${{ item.producto.precio }}</p>
+                    <a href="{% url 'catalogo:detalle_producto' item.producto.id %}" class="btn-hero-solido">Ver detalle</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if items_carrusel|length > 1 %}
+        <button type="button" class="carrusel-flecha carrusel-prev" aria-label="Anterior">‹</button>
+        <button type="button" class="carrusel-flecha carrusel-next" aria-label="Siguiente">›</button>
+        <div class="carrusel-puntos">
+            {% for item in items_carrusel %}
+                <span class="punto{% if forloop.first %} activo{% endif %}" data-index="{{ forloop.counter0 }}"></span>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
+{% else %}
 <section class="hero">
     <h1>Detalles hechos<br>con amor</h1>
     <p>Artesanía floral colombiana diseñada para celebrar los momentos que realmente importan.</p>
@@ -13,6 +50,7 @@
         <a href="#crea-tu-detalle" class="btn-hero-outline">Crear mi detalle</a>
     </div>
 </section>
+{% endif %}
 
 <section class="filtros">
     <button class="chip active" data-filtro="todo">Todos</button>
@@ -116,6 +154,98 @@
     color: white;
     text-align: center;
     padding: 3.5rem 1.5rem;
+}
+.hero-carrusel {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+    background: #c2185b;
+}
+.carrusel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.6s ease-in-out;
+}
+.carrusel-slide {
+    position: relative;
+    min-width: 100%;
+    height: 100%;
+}
+.carrusel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.carrusel-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
+}
+.carrusel-contenido {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: white;
+}
+.carrusel-contenido h2 {
+    font-family: Georgia, serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+}
+.carrusel-contenido p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+.carrusel-flecha {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.85);
+    color: #c2185b;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+.carrusel-flecha:hover { background: white; }
+.carrusel-prev { left: 14px; }
+.carrusel-next { right: 14px; }
+.carrusel-puntos {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+.punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+.punto.activo {
+    background: white;
+}
+@media (max-width: 600px) {
+    .hero-carrusel { height: 300px; }
+    .carrusel-contenido h2 { font-size: 1.4rem; }
 }
 .badge-hero {
     display: inline-block;
@@ -338,6 +468,36 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = `${base}?cantidad=${cantidad}`;
     });
 });
+    const track = document.querySelector('.carrusel-track');
+if (track) {
+    const slides = track.querySelectorAll('.carrusel-slide');
+    const puntos = document.querySelectorAll('.carrusel-puntos .punto');
+    const btnPrev = document.querySelector('.carrusel-prev');
+    const btnNext = document.querySelector('.carrusel-next');
+    let indiceActual = 0;
+    const total = slides.length;
+    let intervalo = null;
+
+    function irASlide(i) {
+        indiceActual = (i + total) % total;
+        track.style.transform = `translateX(-${indiceActual * 100}%)`;
+        puntos.forEach((p, idx) => p.classList.toggle('activo', idx === indiceActual));
+    }
+
+    function iniciarAutoplay() {
+        intervalo = setInterval(() => irASlide(indiceActual + 1), 5000);
+    }
+    function reiniciarAutoplay() {
+        clearInterval(intervalo);
+        iniciarAutoplay();
+    }
+
+    if (btnNext) btnNext.addEventListener('click', () => { irASlide(indiceActual + 1); reiniciarAutoplay(); });
+    if (btnPrev) btnPrev.addEventListener('click', () => { irASlide(indiceActual - 1); reiniciarAutoplay(); });
+    puntos.forEach(p => p.addEventListener('click', () => { irASlide(parseInt(p.dataset.index, 10)); reiniciarAutoplay(); }));
+
+    if (total > 1) iniciarAutoplay();
+}
 });
 </script>
 {% endblock %}

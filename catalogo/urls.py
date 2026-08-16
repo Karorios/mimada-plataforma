@@ -26,5 +26,10 @@ path(
     'admin/editar/<int:pk>/',
     views.editar_producto,
     name='editar_producto'
-)
+),
+path('admin/carrusel/', views.carrusel_dashboard, name='carrusel_dashboard'),
+    path('admin/carrusel/crear/', views.crear_item_carrusel, name='crear_item_carrusel'),
+    path('admin/carrusel/editar/<int:pk>/', views.editar_item_carrusel, name='editar_item_carrusel'),
+    path('admin/carrusel/eliminar/<int:pk>/', views.eliminar_item_carrusel, name='eliminar_item_carrusel'),
+
 ]

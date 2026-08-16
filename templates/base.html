@@ -160,6 +160,7 @@
         <span class="brand-name">Mimada</span>
     </div>
     <div class="nav-links">
+
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'catalogo:lista' %}">Catálogo</a>
         <a href="{% url 'pedidos:crear_detalle' %}">Crea tu detalle</a>
@@ -239,11 +240,82 @@
     © 2026 Mimada. Artesanía Colombiana.<br>
     📱 Contacto: 323 888 3587 &nbsp;|&nbsp; 📷 Instagram: @mimada.detalles
 </footer>
+/* MENÚ HAMBURGUESA (mobile) */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 26px;
+            color: #c2185b;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
 
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.8rem 1rem;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                gap: 0;
+                background: white;
+                border-top: 1px solid #f0c0d4;
+                margin-top: 0.8rem;
+                padding-top: 0.5rem;
+            }
+            .nav-links.abierto {
+                display: flex;
+            }
+            .nav-links a {
+                padding: 12px 4px;
+                border-bottom: 1px solid #fdf0f5;
+                width: 100%;
+            }
+            .nav-links a.active,
+            .nav-links a:hover {
+                border-bottom: 1px solid #fdf0f5;
+                background: #fdf0f5;
+            }
+            .user-menu {
+                width: 100%;
+            }
+            .user-menu-btn {
+                width: 100%;
+                text-align: left;
+                padding: 12px 4px;
+                border-bottom: 1px solid #fdf0f5;
+            }
+            .user-menu-dropdown {
+                position: static;
+                width: 100%;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                min-width: 0;
+            }
+            .user-menu-dropdown a {
+                padding: 10px 16px;
+                background: #fdf0f5;
+            }
+        }
 {% block extra_scripts %}{% endblock %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const btn = document.getElementById('user-menu-btn');
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            navLinks.classList.toggle('abierto');
+        });
+    }
     const dropdown = document.getElementById('user-menu-dropdown');
     if (btn && dropdown) {
         btn.addEventListener('click', function (e) {
