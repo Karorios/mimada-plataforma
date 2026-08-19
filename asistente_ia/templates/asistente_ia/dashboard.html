@@ -31,11 +31,55 @@
         .user-info-mini p:first-child { font-weight: 600; color: #333; }
         .user-info-mini p:last-child { color: #999; font-size: 11px; }
 
-        .main { flex: 1; padding: 2rem; display: flex; align-items: center; justify-content: center; }
-        .empty-state { text-align: center; max-width: 380px; }
-        .empty-state .icono { font-size: 48px; margin-bottom: 1rem; }
-        .empty-state h2 { color: #333; font-size: 20px; margin-bottom: 8px; }
-        .empty-state p { color: #999; font-size: 14px; line-height: 1.5; }
+        .main { flex: 1; padding: 2rem; }
+        .main-header h2 { font-size: 26px; color: #333; }
+        .main-header p { color: #999; font-size: 14px; margin-top: 4px; margin-bottom: 1.5rem; }
+
+        .banner-fecha {
+            background: linear-gradient(135deg, #fce4ec, #fff0f5);
+            border: 1px solid #f48fb1; border-radius: 12px; padding: 14px 18px;
+            margin-bottom: 1.5rem; font-size: 14px; color: #880e4f;
+        }
+        .banner-fecha strong { color: #c2185b; }
+
+        .secciones-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem;
+        }
+        .seccion-card {
+            background: white; border-radius: 14px; border: 1px solid #f5d5e3; padding: 1.2rem;
+        }
+        .seccion-card h3 { font-size: 15px; color: #333; margin-bottom: 4px; }
+        .seccion-card .subtitulo { font-size: 11px; color: #999; margin-bottom: 1rem; }
+
+        .chart-wrap {
+            display: flex; align-items: flex-end; gap: 12px; height: 140px;
+            padding: 0 8px; margin-bottom: 8px;
+        }
+        .barra-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+        .barra {
+            width: 100%; max-width: 46px; border-radius: 6px 6px 0 0;
+            background: #f8bbd0; position: relative; transition: opacity 0.15s;
+            cursor: default;
+        }
+        .barra.prediccion { background: #c2185b; }
+        .barra:hover { opacity: 0.85; }
+        .barra .tooltip {
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; font-size: 11px; padding: 4px 8px; border-radius: 6px;
+            white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; margin-bottom: 6px;
+        }
+        .barra:hover .tooltip { opacity: 1; }
+        .barra-label { font-size: 11px; color: #999; margin-top: 6px; font-weight: 600; }
+        .barra-label.prediccion-label { color: #c2185b; }
+
+        .alerta-card {
+            border-radius: 10px; padding: 10px 12px; font-size: 12.5px; margin-top: 8px;
+        }
+        .alerta-card.CRITICO { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .alerta-card.ALERTA { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .alerta-card.OK { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+        .sin-datos { color: #999; font-size: 12px; text-align: center; padding: 2rem 0; }
     </style>
 </head>
 <body>
@@ -45,24 +89,12 @@
             <p>GESTIÓN FLORAL</p>
         </div>
         <nav>
-            <a href="{% url 'home' %}" class="nav-link">
-                <span class="nav-icon"></span> Inicio
-            </a>
-            <a href="{% url 'inventario:dashboard' %}" class="nav-link">
-                <span class="nav-icon"></span> Inventario
-            </a>
-            <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
-                <span class="nav-icon">️</span> Catálogo
-            </a>
-            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
-                <span class="nav-icon"></span> Pedidos
-            </a>
-            <a href="{% url 'finanzas:dashboard' %}" class="nav-link">
-                <span class="nav-icon"></span> Finanzas
-            </a>
-            <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link active">
-                <span class="nav-icon"></span> Asistente IA
-            </a>
+            <a href="{% url 'home' %}" class="nav-link"><span class="nav-icon">🏠</span> Inicio</a>
+            <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon">📦</span> Inventario</a>
+            <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link"><span class="nav-icon">🛍️</span> Catálogo</a>
+            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link"><span class="nav-icon">🧾</span> Pedidos</a>
+            <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon">💰</span> Finanzas</a>
+            <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link active"><span class="nav-icon">🤖</span> Asistente IA</a>
         </nav>
         <div class="sidebar-footer">
             <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
@@ -76,7 +108,7 @@
     <main class="main">
         <div class="main-header">
             <h2>Asistente IA</h2>
-            <p>Alertas de inventario basadas en tu historial real de ventas.</p>
+            <p>Predicción de ventas y alertas de inventario, basadas en tu historial real.</p>
         </div>
 
         {% if nombre_fecha_proxima %}
@@ -85,21 +117,42 @@
         </div>
         {% endif %}
 
-        <div class="alertas-grid">
-            {% for alerta in alertas %}
-            <div class="alerta-card {{ alerta.nivel }}">
-                <div class="alerta-texto">{{ alerta.mensaje }}</div>
-                <span class="alerta-badge {{ alerta.nivel }}">
-                    {% if alerta.nivel == 'CRITICO' %}Crítico
-                    {% elif alerta.nivel == 'ALERTA' %}Alerta
-                    {% else %}Al día{% endif %}
-                </span>
+        <div class="secciones-grid">
+            {% for s in secciones %}
+            <div class="seccion-card">
+                <h3>{{ s.nombre_display }}</h3>
+                <div class="subtitulo">Historial en {{ nombre_fecha_proxima|default:"fecha comercial" }}</div>
+
+                {% if s.anios or s.prediccion %}
+                <div class="chart-wrap">
+                    {% for a in s.anios %}
+                    <div class="barra-col">
+                        <div class="barra" style="height: {% widthratio a.unidades s.max_valor 100 %}%;">
+                            <span class="tooltip">{{ a.unidades|floatformat:0 }} unidades</span>
+                        </div>
+                        <div class="barra-label">{{ a.anio }}</div>
+                    </div>
+                    {% endfor %}
+
+                    {% if s.prediccion %}
+                    <div class="barra-col">
+                        <div class="barra prediccion" style="height: {% widthratio s.prediccion.unidades s.max_valor 100 %}%;">
+                            <span class="tooltip">~{{ s.prediccion.unidades|floatformat:0 }} unidades (proyección)</span>
+                        </div>
+                        <div class="barra-label prediccion-label">{{ s.prediccion.anio }} (est.)</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="sin-datos">Sin historial todavía para esta fecha comercial.</div>
+                {% endif %}
+
+                <div class="alerta-card {{ s.alerta.nivel }}">
+                    {{ s.alerta.mensaje }}
+                </div>
             </div>
-            {% empty %}
-            <div class="vacio">Todavía no hay suficiente historial o inventario para calcular alertas.</div>
             {% endfor %}
         </div>
-
     </main>
 </body>
 </html>

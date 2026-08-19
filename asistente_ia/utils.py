@@ -3,6 +3,18 @@ from django.db.models import F
 from .models import HistorialVentas
 from .fechas_comerciales import detectar_fecha_comercial
 
+#    mapea nombres reales del catálogo -> nombre histórico en el Excel
+ALIAS_PRODUCTOS = {
+    'ramo de 7 rosas': 'ramo de 7 rosas',
+    'ramo 7 rosas': 'ramo de 7 rosas',
+    'ramo de siete rosas': 'ramo de 7 rosas',
+    # agrega aquí cualquier variante que use tu compañera en el catálogo
+}
+
+
+def normalizar_nombre_producto(nombre):
+    nombre = nombre.strip().lower()
+    return ALIAS_PRODUCTOS.get(nombre, nombre)
 
 def inicio_de_semana(fecha):
     """Lunes de la semana que contiene esa fecha."""
