@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from inventario.models import ItemInventario
 from catalogo.models import Producto
-from .heuristica import evaluar_alerta
+from .heuristica import evaluar_alerta, proyeccion_fecha_comercial
 from .fechas_comerciales import proxima_fecha_comercial
-from .holt import serie_anual_evento, holt_pronostico
+from .holt import serie_anual_evento
 
 PRODUCTOS_ASISTENTE = [
     {'clave': 'rosas unidad', 'nombre_display': 'Rosas', 'categoria_inventario': 'Rosas'},
@@ -38,20 +38,15 @@ def dashboard(request):
         anios_data = [{'anio': anio, 'unidades': float(total)} for anio, total in serie]
 
         prediccion = None
-        if len(serie) >= 2:
-            valores = [total for _, total in serie]
-            resultado_holt = holt_pronostico(valores)
-            prediccion = {
-                'anio': serie[-1][0] + 1,
-                'unidades': float(resultado_holt['pronostico']),
-                'metodo': 'Holt' if not resultado_holt['degradado_a_lineal'] else 'Holt (lineal, N=2)',
-            }
-        elif len(serie) == 1:
-            prediccion = {
-                'anio': serie[0][0] + 1,
-                'unidades': float(serie[0][1]),
-                'metodo': 'Sin tendencia (1 año)',
-            }
+        if nombre_prox:
+            proy = proyeccion_fecha_comercial(producto, nombre_prox)
+            if proy:
+                ultimo_anio = serie[-1][0] if serie else fecha_prox.year - 1
+                prediccion = {
+                    'anio': ultimo_anio + 1,
+                    'unidades': float(proy['proyeccion']),
+                    'metodo': proy['metodo'],
+                }
 
         alerta = evaluar_alerta(producto, stock_actual=stock_actual)
 

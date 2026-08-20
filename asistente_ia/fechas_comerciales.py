@@ -36,10 +36,13 @@ def fechas_comerciales(year):
 
 
 def detectar_fecha_comercial(fecha_inicio, fecha_fin):
-    """Dado un rango de fechas, dice si coincide con alguna fecha comercial."""
+    """Dado un rango de fechas, dice si coincide con alguna fecha comercial.
+    Si la fecha cae justo en el límite entre 2 semanas, se prioriza la semana
+    que YA VENÍA CORRIENDO (fecha_inicio antes de la fecha comercial), no la
+    que apenas empieza ese mismo día."""
     for year in (fecha_inicio.year, fecha_fin.year):
         for fecha, nombre in fechas_comerciales(year).items():
-            if fecha_inicio <= fecha <= fecha_fin:
+            if fecha_inicio <= fecha <= fecha_fin:  # antes: fecha_inicio <= fecha <= fecha_fin
                 return nombre
     return None
 

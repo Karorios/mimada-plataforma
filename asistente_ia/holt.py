@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.db.models.functions import ExtractYear
-from django.db.models import Sum
+from django.db.models import Max
 from .models import HistorialVentas
 
 
@@ -12,7 +12,7 @@ def serie_anual_evento(producto, nombre_evento):
         .filter(producto__iexact=producto, fecha_comercial=nombre_evento)
         .annotate(anio=ExtractYear('fecha_inicio'))
         .values('anio')
-        .annotate(total=Sum('cantidad'))
+        .annotate(total=Max('cantidad'))
         .order_by('anio')
     )
     return [(r['anio'], Decimal(r['total'])) for r in registros]

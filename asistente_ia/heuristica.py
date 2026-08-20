@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_CEILING
 from datetime import date
 from django.db.models import Sum
 from .models import HistorialVentas
@@ -36,28 +36,39 @@ def proyeccion_fecha_comercial(producto, nombre_fecha_comercial, fecha_referenci
     if producto.lower() not in PRODUCTOS_CON_HOLT:
         return None
     serie = serie_anual_evento(producto, nombre_fecha_comercial)
-    valores = serie_anual_evento(producto, nombre_fecha_comercial)
+    valores =  [total for _, total in serie]
 
     if len(valores) >= 2:
         resultado = holt_pronostico(valores)
+        pronostico_redondeado = resultado['pronostico'].to_integral_value(rounding=ROUND_CEILING)
         return {
             'base_historica': valores[-1],
-            'proyeccion': resultado['pronostico'],
+            'proyeccion': pronostico_redondeado,
             'metodo': 'Holt (degradado a lineal, N=2)' if resultado['degradado_a_lineal'] else 'Holt',
             'nivel': resultado['nivel'],
             'tendencia': resultado['tendencia'],
         }
-
     if len(valores) == 1:
+        factor = factor_crecimiento_otras_fechas(producto, excluir_evento=nombre_fecha_comercial)
+        if factor:
+            proyeccion = (valores[0] * factor).to_integral_value(rounding=ROUND_CEILING)
+            return {
+                'base_historica': valores[0],
+                'proyeccion': proyeccion,
+                'metodo': f'Estimado con crecimiento promedio de otras fechas ({round(factor, 2)}x)',
+                'nivel': valores[0],
+                'tendencia': proyeccion - valores[0],
+            }
         return {
             'base_historica': valores[0],
             'proyeccion': valores[0],
-            'metodo': 'Sin tendencia (solo 1 año de historia)',
+            'metodo': 'Sin tendencia (1 año, sin otras fechas para comparar)',
             'nivel': valores[0],
             'tendencia': Decimal('0'),
         }
 
-    return None
+
+
 
 
 def punto_reorden(producto, dias_entrega_proveedor=3, stock_seguridad_dias=3, fecha_referencia=None):
@@ -114,3 +125,32 @@ def evaluar_alerta(producto, stock_actual, dias_entrega_proveedor=3, fecha_refer
         )
 
     return {'nivel': nivel, 'mensaje': mensaje, **resultado}
+
+def factor_crecimiento_otras_fechas(producto, excluir_evento=None):
+    """Promedio del crecimiento año-a-año observado en OTRAS fechas comerciales
+    de este mismo producto (donde sí hay 2+ años), para estimar la fecha actual
+    que solo tiene 1 año de historia."""
+    eventos = (
+        HistorialVentas.objects
+        .filter(producto__iexact=producto)
+        .exclude(fecha_comercial__isnull=True)
+        .exclude(fecha_comercial='')
+        .values_list('fecha_comercial', flat=True)
+        .distinct()
+    )
+
+    factores = []
+    for evento in eventos:
+        if evento == excluir_evento:
+            continue
+        serie = serie_anual_evento(producto, evento)
+        if len(serie) >= 2:
+            valores = [total for _, total in serie]
+            if valores[0] and valores[0] != 0:
+                factores.append(valores[-1] / valores[0])
+
+    if not factores:
+        return None
+
+    promedio = sum(factores) / Decimal(len(factores))
+    return max(Decimal('0.8'), min(Decimal('1.3'), promedio))  # límite más prudente
