@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada | Tu carrito{% endblock %}
+
+{% block content %}
+<div class="contenedor-carrito">
+    <h1>🛒 Tu carrito</h1>
+
+    {% if items %}
+    <label class="checkbox-seleccionar-todos">
+        <input type="checkbox" id="chk-seleccionar-todos" checked>
+        Seleccionar todos
+    </label>
+
+    <div class="lista-carrito">
+        {% for item in items %}
+        <div class="fila-carrito">
+            <input type="checkbox" class="chk-item-carrito" data-item-id="{{ item.item_id }}" data-subtotal="{{ item.subtotal_raw }}" checked>
+            <div class="fila-carrito-imagen">
+                {% if item.imagen %}
+                    <img src="{{ item.imagen.url }}" alt="{{ item.nombre }}">
+                {% else %}
+                    <div class="sin-imagen-carrito">🌸</div>
+                {% endif %}
+            </div>
+
+            <div class="fila-carrito-info">
+                <h3>{{ item.nombre }}</h3>
+                <p class="precio-unitario-carrito">${{ item.precio_unitario|floatformat:0 }} c/u</p>
+                {% if item.tipo == "producto" %}
+                <form method="post" action="{% url 'pedidos:actualizar_cantidad_carrito' item.item_id %}" class="form-cantidad-carrito">
+                    {% csrf_token %}
+                    <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1">
+                    <button type="submit" class="btn-actualizar-carrito">Actualizar</button>
+                </form>
+                {% else %}
+                    <p class="nota-personalizado-carrito">Cantidad: 1 (ramo armado a la medida)</p>
+                {% endif %}
+            </div>
+
+            <div class="fila-carrito-subtotal">
+                <p>${{ item.subtotal|floatformat:0 }}</p>
+                <a href="{% url 'pedidos:eliminar_del_carrito' item.item_id %}" class="btn-eliminar-carrito">Eliminar</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form method="post" action="{% url 'pedidos:iniciar_pedido_seleccionados' %}" id="form-checkout-multiple">
+        {% csrf_token %}
+    </form>
+
+    <div class="resumen-carrito">
+        <p class="aviso-seleccion" id="aviso-seleccion-multiple" style="display:none;">Selecciona al menos un producto para continuar.</p>
+        <p class="total-carrito">Total seleccionado: <strong id="total-seleccionado">${{ total_carrito|floatformat:0 }}</strong></p>        <button type="button" class="btn-checkout" id="btn-checkout" disabled>
+            Confirmar Pedido →
+        </button>
+    </div>
+    {% else %}
+        <p class="carrito-vacio">Tu carrito está vacío. <a href="{% url 'catalogo:lista' %}">Ver catálogo</a></p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.contenedor-carrito {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+.contenedor-carrito h1 {
+    color: #d63384;
+    margin-bottom: 24px;
+}
+.lista-carrito {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.fila-carrito {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border: 1px solid #f3d8e3;
+    border-radius: 12px;
+    padding: 14px;
+    position: relative;
+}
+.fila-carrito-imagen img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.sin-imagen-carrito {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    background: #fdf0f5;
+    border-radius: 8px;
+}
+.fila-carrito-info {
+    flex: 1;
+}
+.fila-carrito-info h3 {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 4px;
+}
+.precio-unitario-carrito {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 6px;
+}
+.form-cantidad-carrito {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.form-cantidad-carrito input {
+    width: 60px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+.btn-actualizar-carrito {
+    background: #fdf0f5;
+    border: 1px solid #f0c0d4;
+    color: #c2185b;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.nota-personalizado-carrito {
+    font-size: 12px;
+    color: #999;
+}
+.fila-carrito-subtotal {
+    text-align: right;
+}
+.fila-carrito-subtotal p {
+    font-weight: 700;
+    color: #c2185b;
+    margin-bottom: 6px;
+}
+.btn-eliminar-carrito {
+    font-size: 12px;
+    color: #999;
+}
+.btn-eliminar-carrito:hover { color: #dc3545; }
+.resumen-carrito {
+    margin-top: 24px;
+    text-align: right;
+}
+.total-carrito {
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+.btn-checkout {
+    background: #d63384;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.carrito-vacio {
+    text-align: center;
+    color: #999;
+    padding: 3rem 0;
+}
+.carrito-vacio a {
+    color: #e91e8c;
+    font-weight: 600;
+}
+.checkbox-seleccionar-todos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 14px;
+    cursor: pointer;
+}
+.chk-item-carrito {
+    width: 18px;
+    height: 18px;
+    accent-color: #e91e8c;
+    cursor: pointer;
+}
+.aviso-seleccion {
+    font-size: 12px;
+    color: #dc3545;
+    margin-bottom: 8px;
+}
+.btn-checkout:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chkTodos = document.getElementById('chk-seleccionar-todos');
+    const checks = Array.from(document.querySelectorAll('.chk-item-carrito'));
+    const totalEl = document.getElementById('total-seleccionado');
+    const avisoMultiple = document.getElementById('aviso-seleccion-multiple');
+    const btnCheckout = document.getElementById('btn-checkout');
+    const formCheckout = document.getElementById('form-checkout-multiple');
+
+    if (!checks.length) return;
+
+    function recalcular() {
+        const marcados = checks.filter(chk => chk.checked);
+
+        const total = marcados.reduce((suma, chk) => suma + parseFloat(chk.dataset.subtotal || 0), 0);
+        totalEl.textContent = '$' + total.toLocaleString('es-CO');
+
+        avisoMultiple.style.display = marcados.length === 0 ? 'block' : 'none';
+        btnCheckout.disabled = marcados.length === 0;
+
+        if (chkTodos) {
+            chkTodos.checked = marcados.length === checks.length;
+        }
+    }
+
+    checks.forEach(chk => chk.addEventListener('change', recalcular));
+
+    if (chkTodos) {
+        chkTodos.addEventListener('change', function () {
+            checks.forEach(chk => { chk.checked = chkTodos.checked; });
+            recalcular();
+        });
+    }
+
+    btnCheckout.addEventListener('click', function () {
+        const marcados = checks.filter(chk => chk.checked);
+        if (!marcados.length) return;
+
+        document.querySelectorAll('#form-checkout-multiple input[name="item_ids"]').forEach(el => el.remove());
+
+        marcados.forEach(chk => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'item_ids';
+            input.value = chk.dataset.itemId;
+            formCheckout.appendChild(input);
+        });
+
+        formCheckout.submit();
+    });
+
+    recalcular();
+});
+</script>
+{% endblock %}

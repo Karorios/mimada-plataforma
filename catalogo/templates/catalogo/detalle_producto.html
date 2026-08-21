@@ -23,17 +23,18 @@
                 <p class="detalle-descripcion">{{ producto.descripcion }}</p>
             {% endif %}
 
-            <p class="detalle-precio">${{ producto.precio }}</p>
+            <p class="detalle-precio">${{ producto.precio|floatformat:0 }}</p>
 
             {% if producto.disponible %}
-                <form method="get" action="{% url 'pedidos:crear_pedido' producto.id %}" class="form-cantidad">
+                                <form method="post" action="{% url 'pedidos:agregar_al_carrito' producto.id %}" class="form-cantidad">
+                    {% csrf_token %}
                     <label for="input-cantidad">Cantidad</label>
                     <div class="selector-cantidad">
                         <button type="button" id="btn-menos" class="btn-cantidad">−</button>
                         <input type="number" id="input-cantidad" name="cantidad" value="1" min="1" readonly>
                         <button type="button" id="btn-mas" class="btn-cantidad">+</button>
                     </div>
-                    <button type="submit" class="btn-comprar-detalle">Comprar</button>
+                    <button type="submit" class="btn-comprar-detalle">Añadir al carrito</button>
                 </form>
             {% else %}
                 <p class="detalle-agotado">Agotado por ahora</p>

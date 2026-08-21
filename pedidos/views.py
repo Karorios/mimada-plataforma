@@ -11,16 +11,21 @@ from catalogo.models import Producto
 from .forms import PedidoForm
 from .models import Pedido, DetallePedido, ConfiguracionRamo
 from .utils import calcular_pliegos, es_modo_manual
+from . import carrito as carrito_helper
+from decimal import Decimal
 
 
 class StockInsuficiente(Exception):
     """Señal interna para abortar la transacción cuando no alcanza el papel."""
     pass
 
+
 @login_required(login_url="usuarios:login")
 def inicio(request):
     pedidos = request.user.pedidos.all().order_by("-fecha_creacion")
     return render(request, "pedidos/inicio.html", {"pedidos": pedidos})
+
+
 PUNTOS_RECOGIDA = {
     "SOACHA": {
         "direccion": "Cl 15 #2B-11, Soacha",
@@ -39,6 +44,7 @@ def calcular_domicilio(tipo_entrega):
     if tipo_entrega == "DOMICILIO":
         return VALOR_DOMICILIO
     return 0
+
 
 def crear_detalle(request):
 
@@ -73,9 +79,12 @@ def crear_detalle(request):
             "detalle_inicial": detalle_inicial,
         },
     )
+
+
 def nuevo_detalle(request):
     request.session.pop("detalle_personalizado", None)
     return redirect("pedidos:crear_detalle")
+
 
 def guardar_detalle_personalizado(request):
 
@@ -135,15 +144,17 @@ def guardar_detalle_personalizado(request):
             + detalle["precio_peluche"]
     )
 
-    request.session["detalle_personalizado"] = detalle
+    request.session.pop("detalle_personalizado", None)
     request.session.pop("producto", None)
 
-    if request.user.is_authenticated:
-        return redirect("pedidos:crear_pedido_personalizado")
+    if not request.user.is_authenticated:
+        login_url = reverse("usuarios:login")
+        siguiente = reverse("pedidos:crear_detalle")
+        return redirect(f"{login_url}?next={siguiente}")
 
-    login_url = reverse("usuarios:login")
-    siguiente = reverse("pedidos:crear_pedido_personalizado")
-    return redirect(f"{login_url}?next={siguiente}")
+    carrito_helper.agregar_personalizado(request, detalle)
+    messages.success(request, "Tu ramo personalizado se añadió al carrito.")
+    return redirect("pedidos:ver_carrito")
 
 
 @login_required(login_url="usuarios:login")
@@ -164,8 +175,12 @@ def crear_pedido_personalizado(request):
             datos["fecha_entrega"] = datos["fecha_entrega"].isoformat()
 
             request.session["pedido"] = datos
+            request.session["items_pedido"] = [{
+                "tipo": "personalizado",
+                "detalle": detalle,
+            }]
             request.session.pop("producto", None)
-
+            request.session.pop("detalle_personalizado", None)
             return redirect("pedidos:resumen")
 
     else:
@@ -180,6 +195,7 @@ def crear_pedido_personalizado(request):
             "es_personalizado": True,
         },
     )
+
 
 @login_required(login_url="usuarios:login")
 def crear_pedido(request, producto_id):
@@ -205,9 +221,13 @@ def crear_pedido(request, producto_id):
             datos["fecha_entrega"] = datos["fecha_entrega"].isoformat()
 
             request.session["pedido"] = datos
-            request.session["producto"] = producto.id
-            request.session["cantidad_producto"] = cantidad
-
+            request.session["items_pedido"] = [{
+                "tipo": "producto",
+                "producto_id": producto.id,
+                "cantidad": cantidad,
+            }]
+            request.session.pop("producto", None)
+            request.session.pop("cantidad_producto", None)
             return redirect("pedidos:resumen")
 
     else:
@@ -223,171 +243,172 @@ def crear_pedido(request, producto_id):
         },
     )
 
+
+def _resumen_items(items_pedido):
+    """Convierte session['items_pedido'] en filas listas para mostrar en resumen/formulario."""
+    resumen_items = []
+    for item in items_pedido:
+        if item["tipo"] == "producto":
+            producto = get_object_or_404(Producto, pk=item["producto_id"])
+            cantidad = item.get("cantidad", 1)
+            precio_unitario = producto.precio
+            subtotal = precio_unitario * cantidad
+            resumen_items.append({
+                "nombre": producto.nombre,
+                "cantidad": cantidad,
+                "precio_unitario": precio_unitario,
+                "subtotal": subtotal,
+            })
+        else:
+            detalle = item["detalle"]
+            subtotal = Decimal(str(detalle["total"]))
+            resumen_items.append({
+                "nombre": "Ramo personalizado",
+                "cantidad": 1,
+                "precio_unitario": subtotal,
+                "subtotal": subtotal,
+            })
+    return resumen_items
+
+
 @login_required(login_url="usuarios:login")
 def resumen(request):
-
     datos = request.session.get("pedido")
+    items_pedido = request.session.get("items_pedido")
 
-    if not datos:
+    if not datos or not items_pedido:
         return redirect("pedidos:inicio")
 
-    producto_id = request.session.get("producto")
-    detalle_personalizado = request.session.get("detalle_personalizado")
-
-    if producto_id:
-        producto = get_object_or_404(Producto, pk=producto_id)
-        producto_nombre = producto.nombre
-        cantidad = request.session.get("cantidad_producto", 1)
-        precio_unitario = producto.precio
-        producto_precio = precio_unitario * cantidad
-    elif detalle_personalizado:
-        producto_nombre = "Ramo personalizado"
-        cantidad = 1
-        precio_unitario = detalle_personalizado["total"]
-        producto_precio = precio_unitario
-    else:
-        return redirect("pedidos:inicio")
+    items = _resumen_items(items_pedido)
+    subtotal_productos = sum((i["subtotal"] for i in items), Decimal("0"))
 
     tipo_entrega = datos.get("tipo_entrega")
-
-    tipo_entrega_display = dict(Pedido.TIPO_ENTREGA).get(
-        tipo_entrega, tipo_entrega
-    )
-
+    tipo_entrega_display = dict(Pedido.TIPO_ENTREGA).get(tipo_entrega, tipo_entrega)
     valor_domicilio = calcular_domicilio(tipo_entrega)
-    total = producto_precio + valor_domicilio
+    total = subtotal_productos + valor_domicilio
 
-    return render(
-        request,
-        "pedidos/resumen.html",
-        {
-            "datos": datos,
-            "producto_nombre": producto_nombre,
-            "cantidad": cantidad,
-            "precio_unitario": precio_unitario,
-            "producto_precio": producto_precio,
-            "tipo_entrega_display": tipo_entrega_display,
-            "es_domicilio": tipo_entrega == "DOMICILIO",
-            "punto_recogida": PUNTOS_RECOGIDA.get(tipo_entrega),
-            "valor_domicilio": valor_domicilio,
-            "total": total,
-        },
-    )
+    return render(request, "pedidos/resumen.html", {
+        "datos": datos,
+        "items": items,
+        "subtotal_productos": subtotal_productos,
+        "tipo_entrega_display": tipo_entrega_display,
+        "es_domicilio": tipo_entrega == "DOMICILIO",
+        "punto_recogida": PUNTOS_RECOGIDA.get(tipo_entrega),
+        "valor_domicilio": valor_domicilio,
+        "total": total,
+    })
+
+
 @login_required(login_url="usuarios:login")
 def confirmar_pedido(request):
-
     datos = request.session.get("pedido")
+    items_pedido = request.session.get("items_pedido")
 
-    if not datos:
-        return redirect("pedidos:inicio")
-
-    producto_id = request.session.get("producto")
-    detalle_personalizado = request.session.get("detalle_personalizado")
-
-    if producto_id:
-        producto = get_object_or_404(Producto, pk=producto_id)
-        producto_nombre = producto.nombre
-        cantidad = request.session.get("cantidad_producto", 1)
-        precio_unitario = producto.precio
-        producto_precio = precio_unitario * cantidad
-    elif detalle_personalizado:
-        producto = None
-        producto_nombre = "Ramo personalizado"
-        cantidad = 1
-        precio_unitario = detalle_personalizado["total"]
-        producto_precio = precio_unitario
-    else:
+    if not datos or not items_pedido:
         return redirect("pedidos:inicio")
 
     valor_domicilio = calcular_domicilio(datos["tipo_entrega"])
-    total = producto_precio + valor_domicilio
 
     try:
         with transaction.atomic():
+            # 1) Validar y descontar stock de papel para cada ramo personalizado
+            for item in items_pedido:
+                if item["tipo"] == "personalizado" and item["detalle"].get("papel_id"):
+                    detalle_p = item["detalle"]
+                    papel_item = ItemInventario.objects.select_for_update().get(pk=detalle_p["papel_id"])
+                    pliegos_necesarios = detalle_p["pliegos_utilizados"]
+                    total_flores = (
+                        detalle_p["cantidad_rosas"] + detalle_p["cantidad_girasoles"] + detalle_p["cantidad_lirios"]
+                    )
+                    if not es_modo_manual(total_flores) and papel_item.stock_actual < pliegos_necesarios:
+                        messages.error(request, "Uno de los papeles seleccionados ya no está disponible.")
+                        raise StockInsuficiente()
+                    papel_item.stock_actual -= pliegos_necesarios
+                    papel_item.save()
 
-            if detalle_personalizado and detalle_personalizado.get("papel_id"):
+            # 2) Calcular totales
+            filas = []  # (item, producto_o_None, cantidad, precio_unitario, subtotal)
+            subtotal_productos = Decimal("0")
+            for item in items_pedido:
+                if item["tipo"] == "producto":
+                    producto = get_object_or_404(Producto, pk=item["producto_id"])
+                    cantidad = item.get("cantidad", 1)
+                    precio_unitario = producto.precio
+                    subtotal = precio_unitario * cantidad
+                else:
+                    producto = None
+                    cantidad = 1
+                    precio_unitario = Decimal(str(item["detalle"]["total"]))
+                    subtotal = precio_unitario
+                subtotal_productos += subtotal
+                filas.append((item, producto, cantidad, precio_unitario, subtotal))
 
-                papel_item = ItemInventario.objects.select_for_update().get(
-                    pk=detalle_personalizado["papel_id"]
-                )
+            total = subtotal_productos + valor_domicilio
 
-                pliegos_necesarios = detalle_personalizado["pliegos_utilizados"]
-                total_flores = (
-                        detalle_personalizado["cantidad_rosas"]
-                        + detalle_personalizado["cantidad_girasoles"]
-                        + detalle_personalizado["cantidad_lirios"]
-                )
-
-                if not es_modo_manual(total_flores) and papel_item.stock_actual < pliegos_necesarios:
-                    messages.error(request, "Ese papel ya no está disponible, elige otro.")
-                    raise StockInsuficiente()
-
-                papel_item.stock_actual -= pliegos_necesarios
-                papel_item.save()
-
+            # 3) Crear el pedido
             pedido = Pedido.objects.create(
-
                 cliente=request.user,
-
                 tipo_entrega=datos["tipo_entrega"],
                 es_regalo=datos["es_regalo"],
                 entrega_anonima=datos["entrega_anonima"],
-
                 nombre_destinatario=datos["nombre_destinatario"],
                 telefono_destinatario=datos["telefono_destinatario"],
-
                 mensaje=datos["mensaje"],
-
                 direccion=datos["direccion"],
                 barrio=datos["barrio"],
                 ciudad=datos["ciudad"],
                 referencia=datos["referencia"],
-
                 fecha_entrega=date.fromisoformat(datos["fecha_entrega"]),
                 hora_entrega=datos["hora_entrega"],
                 valor_domicilio=valor_domicilio,
                 total=total,
             )
 
-            if producto_id:
-                producto = get_object_or_404(Producto, pk=producto_id)
-                producto_nombre = producto.nombre
-                cantidad = request.session.get("cantidad_producto", 1)
-                precio_unitario = producto.precio
-                producto_precio = precio_unitario * cantidad
-            elif detalle_personalizado:
-                producto = None
-                producto_nombre = "Ramo personalizado"
-                cantidad = 1
-                precio_unitario = detalle_personalizado["total"]
-                producto_precio = precio_unitario
-            else:
-                return redirect("pedidos:inicio")
+            # 4) Crear un DetallePedido por cada ítem (y su ConfiguracionRamo si aplica)
+            lineas_mensaje = []
+            for item, producto, cantidad, precio_unitario, subtotal in filas:
+                es_personalizado = item["tipo"] == "personalizado"
 
-            if detalle_personalizado:
-
-                config = ConfiguracionRamo.objects.create(
-                    detalle_pedido=detalle_pedido,
-                    cantidad_rosas=detalle_personalizado["cantidad_rosas"],
-                    cantidad_girasoles=detalle_personalizado["cantidad_girasoles"],
-                    cantidad_lirios=detalle_personalizado["cantidad_lirios"],
-                    papel_decorativo_id=detalle_personalizado["papel_id"] or None,
-                    pliegos_utilizados=detalle_personalizado["pliegos_utilizados"],
-                    tipo_armado=detalle_personalizado.get("tipo_armado") or None,
+                detalle_obj = DetallePedido.objects.create(
+                    pedido=pedido,
+                    producto=producto,
+                    es_personalizado=es_personalizado,
+                    cantidad=cantidad,
+                    precio_unitario=precio_unitario,
+                    subtotal=subtotal,
                 )
 
-                if detalle_personalizado["color_cinta_ids"]:
-                    config.color_cinta.set(detalle_personalizado["color_cinta_ids"])
+                nombre_mostrado = producto.nombre if producto else "Ramo personalizado"
+                lineas_mensaje.append(f"- {nombre_mostrado} x{cantidad}: ${subtotal}")
 
-                if detalle_personalizado["color_lirio_ids"]:
-                    config.color_lirio.set(detalle_personalizado["color_lirio_ids"])
-                adicionales_y_peluche = list(detalle_personalizado["adicionales_ids"])
+                if es_personalizado:
+                    detalle_p = item["detalle"]
+                    config = ConfiguracionRamo.objects.create(
+                        detalle_pedido=detalle_obj,
+                        cantidad_rosas=detalle_p["cantidad_rosas"],
+                        cantidad_girasoles=detalle_p["cantidad_girasoles"],
+                        cantidad_lirios=detalle_p["cantidad_lirios"],
+                        papel_decorativo_id=detalle_p["papel_id"] or None,
+                        pliegos_utilizados=detalle_p["pliegos_utilizados"],
+                        tipo_armado=detalle_p.get("tipo_armado") or None,
+                    )
+                    if detalle_p["color_cinta_ids"]:
+                        config.color_cinta.set(detalle_p["color_cinta_ids"])
+                    if detalle_p["color_lirio_ids"]:
+                        config.color_lirio.set(detalle_p["color_lirio_ids"])
 
-                if detalle_personalizado.get("peluche_id"):
-                    adicionales_y_peluche.append(detalle_personalizado["peluche_id"])
+                    adicionales_y_peluche = list(detalle_p["adicionales_ids"])
+                    if detalle_p.get("peluche_id"):
+                        adicionales_y_peluche.append(detalle_p["peluche_id"])
+                    if adicionales_y_peluche:
+                        config.adicionales.set(adicionales_y_peluche)
 
-                if adicionales_y_peluche:
-                    config.adicionales.set(adicionales_y_peluche)
+            # 5) Recién ahora que el pedido se creó con éxito, limpiar del carrito
+            #    los ítems que vinieron de ahí (selección múltiple).
+            for item in items_pedido:
+                cart_item_id = item.get("cart_item_id")
+                if cart_item_id:
+                    carrito_helper.eliminar_item(request, cart_item_id)
 
     except StockInsuficiente:
         return redirect("pedidos:resumen")
@@ -410,16 +431,15 @@ Horario:
 {punto.get('horario', '')}"""
 
     domicilio_texto = "Gratis" if pedido.valor_domicilio == 0 else f"${pedido.valor_domicilio}"
+    productos_texto = "\n".join(lineas_mensaje)
 
     mensaje = f"""
 🌸 *Nuevo pedido Mimada*
 
 Pedido No: {pedido.id}
 
-Producto:
-{producto_nombre}
-Valor producto:
-${producto_precio}
+Productos:
+{productos_texto}
 
 Domicilio:
 {domicilio_texto}
@@ -456,15 +476,13 @@ Quedo atento(a) a la información para realizar el pago.
 """
 
     telefono = "573238883587"
-
     url = f"https://wa.me/{telefono}?text={quote(mensaje)}"
 
     request.session.pop("pedido", None)
-    request.session.pop("producto", None)
-    request.session.pop("detalle_personalizado", None)
-    request.session.pop("cantidad_producto", None)
+    request.session.pop("items_pedido", None)
 
     return redirect(url)
+
 
 @login_required(login_url="usuarios:login")
 def editar_pedido(request, pedido_id):
@@ -479,9 +497,13 @@ def editar_pedido(request, pedido_id):
         if form.is_valid():
             pedido_editado = form.save(commit=False)
             pedido_editado.valor_domicilio = calcular_domicilio(pedido_editado.tipo_entrega)
-            detalle = pedido_editado.detalles.first()
-            subtotal = detalle.subtotal if detalle else 0
-            pedido_editado.total = subtotal + pedido_editado.valor_domicilio
+
+            subtotal_productos = sum(
+                (d.subtotal for d in pedido_editado.detalles.all()),
+                Decimal("0")
+            )
+            pedido_editado.total = subtotal_productos + pedido_editado.valor_domicilio
+
             pedido_editado.save()
             return redirect("pedidos:inicio")
     else:
@@ -504,3 +526,152 @@ def cancelar_pedido(request, pedido_id):
         pedido.save()
 
     return redirect("pedidos:inicio")
+
+
+@login_required(login_url="usuarios:login")
+def agregar_al_carrito(request, producto_id):
+    if request.method != "POST":
+        return redirect("catalogo:detalle_producto", pk=producto_id)
+
+    producto = get_object_or_404(Producto, pk=producto_id)
+
+    cantidad_raw = request.POST.get("cantidad", 1)
+    try:
+        cantidad = int(cantidad_raw)
+    except (TypeError, ValueError):
+        cantidad = 1
+    if cantidad < 1:
+        cantidad = 1
+
+    carrito_helper.agregar_producto(request, producto.id, cantidad)
+
+    messages.success(request, f'"{producto.nombre}" se añadió al carrito.')
+
+    siguiente = request.POST.get("next") or request.META.get("HTTP_REFERER") or "home"
+    return redirect(siguiente)
+
+
+def ver_carrito(request):
+    carrito = request.session.get("carrito", [])
+
+    items = []
+    total_carrito = Decimal("0")
+
+    for item in carrito:
+        if item["tipo"] == "producto":
+            producto = Producto.objects.filter(pk=item["producto_id"]).first()
+            if not producto:
+                continue
+            subtotal = producto.precio * item["cantidad"]
+            total_carrito += subtotal
+            items.append({
+                "item_id": item["id"],
+                "tipo": "producto",
+                "nombre": producto.nombre,
+                "imagen": producto.imagen,
+                "precio_unitario": producto.precio,
+                "cantidad": item["cantidad"],
+                "subtotal": subtotal,
+                "subtotal_raw": str(subtotal),
+            })
+        else:
+            detalle_pedido = item["detalle"]
+            subtotal = Decimal(str(detalle_pedido["total"]))
+            total_carrito += subtotal
+            items.append({
+                "item_id": item["id"],
+                "tipo": "personalizado",
+                "nombre": "Ramo personalizado",
+                "imagen": None,
+                "precio_unitario": subtotal,
+                "cantidad": 1,
+                "subtotal": subtotal,
+                "subtotal_raw": str(subtotal),
+            })
+
+    return render(request, "pedidos/carrito.html", {
+        "items": items,
+        "total_carrito": total_carrito,
+    })
+
+
+def eliminar_del_carrito(request, item_id):
+    carrito_helper.eliminar_item(request, item_id)
+    messages.success(request, "Se eliminó el producto del carrito.")
+    return redirect("pedidos:ver_carrito")
+
+
+def actualizar_cantidad_carrito(request, item_id):
+    if request.method == "POST":
+        cantidad_raw = request.POST.get("cantidad", 1)
+        try:
+            cantidad = int(cantidad_raw)
+        except (TypeError, ValueError):
+            cantidad = 1
+        carrito_helper.actualizar_cantidad(request, item_id, cantidad)
+    return redirect("pedidos:ver_carrito")
+
+
+@login_required(login_url="usuarios:login")
+def iniciar_pedido_seleccionados(request):
+    if request.method != "POST":
+        return redirect("pedidos:ver_carrito")
+
+    item_ids = request.POST.getlist("item_ids")
+    if not item_ids:
+        messages.error(request, "Selecciona al menos un producto para continuar.")
+        return redirect("pedidos:ver_carrito")
+
+    carrito = request.session.get("carrito", [])
+    seleccionados = [i for i in carrito if i["id"] in item_ids]
+
+    if not seleccionados:
+        messages.error(request, "Esos productos ya no están en el carrito.")
+        return redirect("pedidos:ver_carrito")
+
+    items_pedido = []
+    for item in seleccionados:
+        if item["tipo"] == "producto":
+            items_pedido.append({
+                "tipo": "producto",
+                "producto_id": item["producto_id"],
+                "cantidad": item.get("cantidad", 1),
+                "cart_item_id": item["id"],
+            })
+        else:
+            items_pedido.append({
+                "tipo": "personalizado",
+                "detalle": item["detalle"],
+                "cart_item_id": item["id"],
+            })
+
+    # OJO: no se borra nada del carrito aquí. Solo se borra al confirmar el pedido
+    # (ver confirmar_pedido), así si el cliente abandona el flujo los productos
+    # siguen en su carrito.
+    request.session["items_pedido"] = items_pedido
+    request.session.modified = True
+
+    return redirect("pedidos:crear_pedido_lote")
+
+
+@login_required(login_url="usuarios:login")
+def crear_pedido_lote(request):
+    items_pedido = request.session.get("items_pedido")
+    if not items_pedido:
+        return redirect("pedidos:ver_carrito")
+
+    if request.method == "POST":
+        form = PedidoForm(request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data.copy()
+            datos["fecha_entrega"] = datos["fecha_entrega"].isoformat()
+            request.session["pedido"] = datos
+            return redirect("pedidos:resumen")
+    else:
+        form = PedidoForm()
+
+    return render(request, "pedidos/crear_pedido.html", {
+        "form": form,
+        "es_lote": True,
+        "items_lote": _resumen_items(items_pedido),
+    })

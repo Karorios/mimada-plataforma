@@ -19,11 +19,11 @@
                     {% if item.titulo %}<h2>{{ item.titulo }}</h2>{% endif %}
                     {% if item.subtitulo %}<p>{{ item.subtitulo }}</p>{% endif %}
                     {% if item.url_destino %}
-                        <a href="{{ item.url_destino }}" class="btn-hero-solido">{{ item.texto_boton }}</a>
+                        <a href="{{ item.url_destino }}" class="btn-hero-solido">{{ item.texto_boton|default:"Ver más" }}</a>
                     {% endif %}
                 {% elif item.producto %}
                     <h2>{{ item.producto.nombre }}</h2>
-                    <p>${{ item.producto.precio }}</p>
+                    <p>${{ item.producto.precio|floatformat:0 }}</p>
                     <a href="{% url 'catalogo:detalle_producto' item.producto.id %}" class="btn-hero-solido">Ver detalle</a>
                 {% endif %}
             </div>
@@ -85,26 +85,27 @@
             </div>
 
             <div class="info-producto">
-                {% if producto.disponible %}
-            {% else %}
-                <span class="badge-producto badge-agotado">Agotado</span>
-            {% endif %}
-               <h3><a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-nombre-producto">{{ producto.nombre }}</a></h3>
+                {% if not producto.disponible %}
+                    <span class="badge-producto badge-agotado">Agotado</span>
+                {% endif %}
+                <h3><a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-nombre-producto">{{ producto.nombre }}</a></h3>
                 <p class="categoria-producto">{{ producto.categoria.get_nombre_display }}</p>
-            <div class="fila-precio">
-                    <p class="precio">${{ producto.precio }}</p>
+                <div class="fila-precio">
+                    <p class="precio">${{ producto.precio|floatformat:0 }}</p>
                 </div>
+
                 {% if producto.disponible %}
                 <div class="fila-cantidad">
                     <button type="button" class="btn-cantidad" data-accion="restar">−</button>
                     <input type="number" class="cantidad-valor" value="1" min="1" readonly>
                     <button type="button" class="btn-cantidad" data-accion="sumar">+</button>
                 </div>
-                <a href="{% url 'pedidos:crear_pedido' producto.id %}"
-                   class="btn-comprar btn-comprar-ancho"
-                   data-base-href="{% url 'pedidos:crear_pedido' producto.id %}">
-                    Comprar
-                </a>
+
+                <form method="post" action="{% url 'pedidos:agregar_al_carrito' producto.id %}" class="form-agregar-carrito">
+                    {% csrf_token %}
+                    <input type="hidden" name="cantidad" value="1" class="cantidad-hidden">
+                    <button type="submit" class="btn-comprar">Añadir al carrito</button>
+                </form>
                 {% endif %}
 
                 <a href="{% url 'catalogo:detalle_producto' producto.id %}" class="btn-ver-detalle">
@@ -158,7 +159,8 @@
 .hero-carrusel {
     position: relative;
     width: 100%;
-    height: 380px;
+    aspect-ratio: 21 / 9;
+    max-height: 480px;
     overflow: hidden;
     background: #c2185b;
 }
@@ -176,12 +178,13 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
 }
 .carrusel-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.55) 100%);
 }
 .carrusel-contenido {
     position: absolute;
@@ -372,6 +375,11 @@
     font-weight: 600;
     padding: 6px 14px;
     border-radius: 999px;
+    border: none;
+    cursor: pointer;
+}
+.form-agregar-carrito {
+    display: inline-block;
 }
 .fila-cantidad {
     display: flex;
@@ -444,60 +452,56 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
-    document.querySelectorAll('.tarjeta-producto').forEach(tarjeta => {
-    const input = tarjeta.querySelector('.cantidad-valor');
-    const btnComprar = tarjeta.querySelector('.btn-comprar');
-    if (!input || !btnComprar) return;
 
-    tarjeta.querySelectorAll('.btn-cantidad').forEach(boton => {
-        boton.addEventListener('click', () => {
-            let valor = parseInt(input.value, 10) || 1;
-            if (boton.dataset.accion === 'sumar') {
-                valor += 1;
-            } else if (valor > 1) {
-                valor -= 1;
-            }
-            input.value = valor;
+    document.querySelectorAll('.tarjeta-producto').forEach(tarjeta => {
+        const input = tarjeta.querySelector('.cantidad-valor');
+        const cantidadHidden = tarjeta.querySelector('.cantidad-hidden');
+        if (!input) return;
+
+        tarjeta.querySelectorAll('.btn-cantidad').forEach(boton => {
+            boton.addEventListener('click', () => {
+                let valor = parseInt(input.value, 10) || 1;
+                if (boton.dataset.accion === 'sumar') {
+                    valor += 1;
+                } else if (valor > 1) {
+                    valor -= 1;
+                }
+                input.value = valor;
+                if (cantidadHidden) cantidadHidden.value = valor;
+            });
         });
     });
 
-    btnComprar.addEventListener('click', (e) => {
-        e.preventDefault();
-        const cantidad = parseInt(input.value, 10) || 1;
-        const base = btnComprar.dataset.baseHref;
-        window.location.href = `${base}?cantidad=${cantidad}`;
-    });
-});
     const track = document.querySelector('.carrusel-track');
-if (track) {
-    const slides = track.querySelectorAll('.carrusel-slide');
-    const puntos = document.querySelectorAll('.carrusel-puntos .punto');
-    const btnPrev = document.querySelector('.carrusel-prev');
-    const btnNext = document.querySelector('.carrusel-next');
-    let indiceActual = 0;
-    const total = slides.length;
-    let intervalo = null;
+    if (track) {
+        const slides = track.querySelectorAll('.carrusel-slide');
+        const puntos = document.querySelectorAll('.carrusel-puntos .punto');
+        const btnPrev = document.querySelector('.carrusel-prev');
+        const btnNext = document.querySelector('.carrusel-next');
+        let indiceActual = 0;
+        const total = slides.length;
+        let intervalo = null;
 
-    function irASlide(i) {
-        indiceActual = (i + total) % total;
-        track.style.transform = `translateX(-${indiceActual * 100}%)`;
-        puntos.forEach((p, idx) => p.classList.toggle('activo', idx === indiceActual));
+        function irASlide(i) {
+            indiceActual = (i + total) % total;
+            track.style.transform = `translateX(-${indiceActual * 100}%)`;
+            puntos.forEach((p, idx) => p.classList.toggle('activo', idx === indiceActual));
+        }
+
+        function iniciarAutoplay() {
+            intervalo = setInterval(() => irASlide(indiceActual + 1), 5000);
+        }
+        function reiniciarAutoplay() {
+            clearInterval(intervalo);
+            iniciarAutoplay();
+        }
+
+        if (btnNext) btnNext.addEventListener('click', () => { irASlide(indiceActual + 1); reiniciarAutoplay(); });
+        if (btnPrev) btnPrev.addEventListener('click', () => { irASlide(indiceActual - 1); reiniciarAutoplay(); });
+        puntos.forEach(p => p.addEventListener('click', () => { irASlide(parseInt(p.dataset.index, 10)); reiniciarAutoplay(); }));
+
+        if (total > 1) iniciarAutoplay();
     }
-
-    function iniciarAutoplay() {
-        intervalo = setInterval(() => irASlide(indiceActual + 1), 5000);
-    }
-    function reiniciarAutoplay() {
-        clearInterval(intervalo);
-        iniciarAutoplay();
-    }
-
-    if (btnNext) btnNext.addEventListener('click', () => { irASlide(indiceActual + 1); reiniciarAutoplay(); });
-    if (btnPrev) btnPrev.addEventListener('click', () => { irASlide(indiceActual - 1); reiniciarAutoplay(); });
-    puntos.forEach(p => p.addEventListener('click', () => { irASlide(parseInt(p.dataset.index, 10)); reiniciarAutoplay(); }));
-
-    if (total > 1) iniciarAutoplay();
-}
 });
 </script>
 {% endblock %}

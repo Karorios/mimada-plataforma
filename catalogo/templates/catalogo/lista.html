@@ -54,12 +54,12 @@
                     <input type="number" class="cantidad-valor" value="1" min="1" readonly>
                     <button type="button" class="btn-cantidad" data-accion="sumar">+</button>
                 </div>
-                <a href="{% url 'pedidos:crear_pedido' producto.id %}"
-                   class="btn-comprar btn-comprar-ancho"
-                   data-base-href="{% url 'pedidos:crear_pedido' producto.id %}">
-                    Comprar
-                </a>
-                {% endif %}
+                        <form method="post" action="{% url 'pedidos:agregar_al_carrito' producto.id %}" class="form-agregar-carrito">
+                            {% csrf_token %}
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" class="btn-comprar">Añadir al carrito</button>
+                        </form>
+                    {% endif %}
                 <a href="{% url 'catalogo:detalle_producto' producto.id %}" class="btn-ver-detalle">
                     Ver detalle
                 </a>
@@ -123,6 +123,11 @@
     font-weight: 600;
     padding: 6px 14px;
     border-radius: 999px;
+    border: none;
+    cursor: pointer;
+}
+.form-agregar-carrito {
+    display: inline-block;
 }
 .fila-cantidad {
     display: flex;

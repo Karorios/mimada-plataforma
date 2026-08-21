@@ -13,71 +13,55 @@
         <p class="subtitulo">
             Completa la información para continuar con tu compra.
         </p>
-           {% if es_personalizado %}
+
+        {% if es_personalizado %}
         <div class="editar-ramo-opciones">
-            <a href="{% url 'pedidos:crear_detalle' %}" class="link-editar-ramo">
-                ✏️ Modificar el detalle actual
-            </a>
-            <a href="{% url 'pedidos:nuevo_detalle' %}" class="link-editar-ramo">
-                ➕ Crear un ramo nuevo
-            </a>
+            <a href="{% url 'pedidos:crear_detalle' %}" class="link-editar-ramo">✏️ Modificar el detalle actual</a>
+            <a href="{% url 'pedidos:nuevo_detalle' %}" class="link-editar-ramo">➕ Crear un ramo nuevo</a>
+        </div>
+        {% elif es_lote %}
+        <div class="editar-ramo-opciones">
+            <a href="{% url 'pedidos:ver_carrito' %}" class="link-editar-ramo">← Volver al carrito</a>
         </div>
         {% else %}
         <div class="editar-ramo-opciones">
-            <a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-editar-ramo">
-                ← Volver
-            </a>
+            <a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-editar-ramo">← Volver</a>
         </div>
         {% endif %}
-        <form method="post">
 
+        <form method="post">
             {% csrf_token %}
 
-            <input
-                type="hidden"
-                name="producto"
-                value="{{ producto }}"
-            >
+            {% if es_lote %}
+                <div class="nota-cantidad">
+                    <strong>Productos seleccionados:</strong>
+                    <ul style="margin:8px 0 0 18px;">
+                        {% for item in items_lote %}
+<li>{{ item.nombre }} x{{ item.cantidad }} — ${{ item.subtotal|floatformat:0 }}</li>                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <input type="hidden" name="producto" value="{{ producto }}">
+                <input type="hidden" name="cantidad" value="{{ cantidad }}">
+                <p class="nota-cantidad">Cantidad seleccionada: <strong>{{ cantidad }}</strong></p>
+            {% endif %}
 
-            <input
-                type="hidden"
-                name="cantidad"
-                value="{{ cantidad }}"
-            >
-
-            <input
-                type="hidden"
-                name="cantidad"
-                value="{{ cantidad }}"
-            >
-
-            <p class="nota-cantidad">Cantidad seleccionada: <strong>{{ cantidad }}</strong></p>
             {{ form.as_p }}
 
-            <button type="submit" class="btn-continuar">
-                Continuar al resumen →
-            </button>
-
+            <button type="submit" class="btn-continuar">Continuar al resumen →</button>
         </form>
 
     </div>
 
 </div>
 {% endblock %}
+
 {% block extra_style %}
 .editar-ramo-opciones {
     display: flex;
     gap: 20px;
     margin-bottom: 20px;
     flex-wrap: wrap;
-}
-.link-editar-ramo {
-    font-size: 13px;
-    color: #d63384;
-    font-weight: 600;
-}
-.link-editar-ramo:hover {
-    text-decoration: underline;
 }
 .link-editar-ramo {
     display: inline-block;
