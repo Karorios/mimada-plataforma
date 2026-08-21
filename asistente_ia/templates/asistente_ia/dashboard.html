@@ -1,158 +1,316 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Mimada Admin - Asistente IA</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
-        .sidebar {
-            width: 220px; background: white; border-right: 1px solid #f5d5e3;
-            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
-        }
-        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
-        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
-        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
-        .nav-link {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
-            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
-        }
-        .nav-link:hover { background: #fdf0f5; }
-        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
-        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-        .sidebar-footer {
-            margin-top: auto; display: flex; align-items: center; gap: 10px;
-            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
-        }
-        .avatar-mini {
-            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;
-        }
-        .user-info-mini p:first-child { font-weight: 600; color: #333; }
-        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+  <meta charset="UTF-8">
+  <title>Asistente IA · Mimada Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #FBE8EF;
+      --sidebar-bg: #FFFFFF;
+      --card-bg: #FFFFFF;
+      --magenta: #C2185B;
+      --magenta-oscuro: #9C1249;
+      --rosa-activo: #FBE0EA;
+      --rosa-suave: #F8D3E3;
+      --texto: #2E2430;
+      --texto-suave: #8C7A85;
+      --ok: #2F8F5B;
+      --ok-bg: #E7F5EC;
+      --alerta: #C2185B;
+      --alerta-bg: #FCE8F0;
+      --sin-datos: #9A8890;
+      --sin-datos-bg: #F1EAEC;
+      --borde: #F1DDE6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--texto);
+    }
+    .layout { display: flex; min-height: 100vh; }
 
-        .main { flex: 1; padding: 2rem; }
-        .main-header h2 { font-size: 26px; color: #333; }
-        .main-header p { color: #999; font-size: 14px; margin-top: 4px; margin-bottom: 1.5rem; }
+    .sidebar {
+      width: 220px;
+      background: var(--sidebar-bg);
+      padding: 24px 18px;
+      flex-shrink: 0;
+    }
+    .sidebar__brand {
+      color: var(--magenta);
+      font-weight: 800;
+      font-size: 1.15rem;
+      margin: 0;
+    }
+    .sidebar__sub {
+      color: var(--texto-suave);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      margin: 2px 0 26px;
+    }
+    .sidebar__item {
+      display: block;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: var(--texto-suave);
+      font-size: 0.92rem;
+      text-decoration: none;
+      margin-bottom: 4px;
+    }
+    .sidebar__item.activo {
+      background: var(--rosa-activo);
+      color: var(--magenta-oscuro);
+      font-weight: 600;
+      border: 1px solid var(--rosa-suave);
+    }
 
-        .banner-fecha {
-            background: linear-gradient(135deg, #fce4ec, #fff0f5);
-            border: 1px solid #f48fb1; border-radius: 12px; padding: 14px 18px;
-            margin-bottom: 1.5rem; font-size: 14px; color: #880e4f;
-        }
-        .banner-fecha strong { color: #c2185b; }
+    .main { flex: 1; padding: 28px 36px; }
 
-        .secciones-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem;
-        }
-        .seccion-card {
-            background: white; border-radius: 14px; border: 1px solid #f5d5e3; padding: 1.2rem;
-        }
-        .seccion-card h3 { font-size: 15px; color: #333; margin-bottom: 4px; }
-        .seccion-card .subtitulo { font-size: 11px; color: #999; margin-bottom: 1rem; }
+    .main__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .main__titulo { font-size: 1.5rem; font-weight: 800; margin: 0; color: var(--texto); }
+    .main__subtitulo { color: var(--texto-suave); font-size: 0.9rem; margin: 4px 0 0; }
 
-        .chart-wrap {
-            display: flex; align-items: flex-end; gap: 12px; height: 140px;
-            padding: 0 8px; margin-bottom: 8px;
-        }
-        .barra-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
-        .barra {
-            width: 100%; max-width: 46px; border-radius: 6px 6px 0 0;
-            background: #f8bbd0; position: relative; transition: opacity 0.15s;
-            cursor: default;
-        }
-        .barra.prediccion { background: #c2185b; }
-        .barra:hover { opacity: 0.85; }
-        .barra .tooltip {
-            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: #333; color: white; font-size: 11px; padding: 4px 8px; border-radius: 6px;
-            white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; margin-bottom: 6px;
-        }
-        .barra:hover .tooltip { opacity: 1; }
-        .barra-label { font-size: 11px; color: #999; margin-top: 6px; font-weight: 600; }
-        .barra-label.prediccion-label { color: #c2185b; }
+    .btn-magenta {
+      background: var(--magenta);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-        .alerta-card {
-            border-radius: 10px; padding: 10px 12px; font-size: 12.5px; margin-top: 8px;
-        }
-        .alerta-card.CRITICO { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .alerta-card.ALERTA { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
-        .alerta-card.OK { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .kpi-card__label {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      color: var(--texto-suave);
+      text-transform: uppercase;
+    }
+    .kpi-card__valor {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--magenta-oscuro);
+      margin-top: 4px;
+    }
 
-        .sin-datos { color: #999; font-size: 12px; text-align: center; padding: 2rem 0; }
-    </style>
+    .flor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .flor-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 20px 20px 16px;
+      border: 1px solid var(--borde);
+    }
+    .flor-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    .flor-card__titulo { font-size: 1rem; font-weight: 700; margin: 0; }
+    .flor-card__subtitulo { font-size: 0.72rem; color: var(--texto-suave); }
+    .flor-card__chart-wrap { height: 140px; position: relative; }
+
+    .flor-card__alerta {
+      margin-top: 14px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .flor-card__alerta.nivel-ALERTA,
+    .flor-card__alerta.nivel-CRITICO { background: var(--alerta-bg); color: var(--alerta); }
+    .flor-card__alerta.nivel-OK { background: var(--ok-bg); color: var(--ok); }
+    .flor-card__alerta.nivel-SIN_DATOS { background: var(--sin-datos-bg); color: var(--sin-datos); }
+    .flor-card__alerta-icono { font-size: 0.85rem; margin-top: 1px; }
+
+    .cinta-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 16px 20px;
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border: 1px solid var(--borde);
+      flex-wrap: wrap;
+    }
+    .cinta-card__label { font-weight: 700; font-size: 0.9rem; }
+    .cinta-card__estado {
+      font-size: 0.8rem;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .cinta-card__estado.nivel-ALERTA { background: var(--alerta-bg); color: var(--alerta); }
+    .cinta-card__estado.nivel-OK { background: var(--ok-bg); color: var(--ok); }
+    .cinta-card__estado.nivel-SIN_DATOS { background: var(--sin-datos-bg); color: var(--sin-datos); }
+  </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <h1>Mimada Admin</h1>
-            <p>GESTIÓN FLORAL</p>
-        </div>
-        <nav>
-            <a href="{% url 'home' %}" class="nav-link"><span class="nav-icon"></span> Inicio</a>
-            <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Inventario</a>
-            <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link"><span class="nav-icon"></span> Catálogo</a>
-            <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Pedidos</a>
-            <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Finanzas</a>
-            <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link active"><span class="nav-icon"></span> Asistente IA</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
-            <div class="user-info-mini">
-                <p>{{ request.user.get_full_name|default:request.user.username }}</p>
-                <p>Admin Principal</p>
-            </div>
-        </div>
-    </aside>
+<div class="layout">
 
-    <main class="main">
-        <div class="main-header">
-            <h2>Asistente IA</h2>
-            <p>Predicción de ventas y alertas de inventario, basadas en tu historial real.</p>
+  <!-- ============ SIDEBAR ============ -->
+  <!-- Reemplaza esto por tu {% include 'sidebar.html' %} real si ya lo tienes aparte -->
+  <aside class="sidebar">
+    <p class="sidebar__brand">Mimada Admin</p>
+    <p class="sidebar__sub">GESTIÓN FLORAL</p>
+    <a href="#" class="sidebar__item">Inicio</a>
+    <a href="#" class="sidebar__item">Inventario</a>
+    <a href="#" class="sidebar__item">Catálogo</a>
+    <a href="#" class="sidebar__item">Carrusel</a>
+    <a href="#" class="sidebar__item">Pedidos</a>
+    <a href="#" class="sidebar__item">Finanzas</a>
+    <a href="#" class="sidebar__item activo">Asistente IA</a>
+  </aside>
+
+  <!-- ============ CONTENIDO ============ -->
+  <main class="main">
+    <div class="main__header">
+      <div>
+        <h1 class="main__titulo">Asistente IA · Predicción de Insumos</h1>
+        <p class="main__subtitulo">
+          {% if nombre_fecha_proxima %}
+            Próxima fecha comercial: {{ nombre_fecha_proxima }}{% if fecha_proxima %} · {{ fecha_proxima|date:"d/m/Y" }}{% endif %}
+          {% else %}
+            No hay una fecha comercial próxima detectada.
+          {% endif %}
+        </p>
+      </div>
+      <button class="btn-magenta">Actualizar predicción</button>
+    </div>
+
+    <!-- KPIs de ejemplo — cámbialos por los tuyos si ya tienes otros -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-card__label">Flores en seguimiento</div>
+        <div class="kpi-card__valor">{{ secciones|length }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">Próxima fecha</div>
+        <div class="kpi-card__valor" style="font-size: 1.1rem;">{{ nombre_fecha_proxima|default:"—" }}</div>
+      </div>
+    </div>
+
+    <div class="flor-grid">
+      {% for seccion in secciones %}
+      <div class="flor-card">
+        <div class="flor-card__header">
+          <p class="flor-card__titulo">{{ seccion.nombre_display }}</p>
+          <span class="flor-card__subtitulo">Últimas semanas</span>
         </div>
 
-        {% if nombre_fecha_proxima %}
-        <div class="banner-fecha">
-            📅 Próxima fecha comercial: <strong>{{ nombre_fecha_proxima }}</strong> — {{ fecha_proxima|date:"d \d\e F" }}
+        <div class="flor-card__chart-wrap">
+          <canvas id="chart-{{ seccion.clave }}"></canvas>
+        </div>
+
+        {% if seccion.alerta %}
+        <div class="flor-card__alerta nivel-{{ seccion.alerta.nivel }}">
+          <span class="flor-card__alerta-icono">
+            {% if seccion.alerta.nivel == 'OK' %}✓{% elif seccion.alerta.nivel == 'SIN_DATOS' %}·{% else %}!{% endif %}
+          </span>
+          <span>{{ seccion.alerta.mensaje }}</span>
         </div>
         {% endif %}
+      </div>
+      {% endfor %}
+    </div>
 
-        <div class="secciones-grid">
-            {% for s in secciones %}
-            <div class="seccion-card">
-                <h3>{{ s.nombre_display }}</h3>
-                <div class="subtitulo">Historial en {{ nombre_fecha_proxima|default:"fecha comercial" }}</div>
+    {% if cinta %}
+    <div class="cinta-card">
+      <span class="cinta-card__label">Cinta satinada</span>
+      <span class="cinta-card__estado nivel-{{ cinta.nivel }}">{{ cinta.mensaje }}</span>
+    </div>
+    {% endif %}
+  </main>
+</div>
 
-                {% if s.anios or s.prediccion %}
-                <div class="chart-wrap">
-                    {% for a in s.anios %}
-                    <div class="barra-col">
-                        <div class="barra" style="height: {% widthratio a.unidades s.max_valor 100 %}%;">
-                            <span class="tooltip">{{ a.unidades|floatformat:0 }} unidades</span>
-                        </div>
-                        <div class="barra-label">{{ a.anio }}</div>
-                    </div>
-                    {% endfor %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const seccionesData = [
+    {% for seccion in secciones %}
+    {
+      clave: "{{ seccion.clave }}",
+      labels: {{ seccion.chart_labels|safe }},
+      valores: {{ seccion.chart_valores|safe }},
+      indicePrediccion: {{ seccion.indice_prediccion|default_if_none:"null" }},
+    },
+    {% endfor %}
+  ];
 
-                    {% if s.prediccion %}
-                    <div class="barra-col">
-                        <div class="barra prediccion" style="height: {% widthratio s.prediccion.unidades s.max_valor 100 %}%;">
-                            <span class="tooltip">~{{ s.prediccion.unidades|floatformat:0 }} unidades (proyección)</span>
-                        </div>
-                        <div class="barra-label prediccion-label">{{ s.prediccion.anio }} (est.)</div>
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="sin-datos">Sin historial todavía para esta fecha comercial.</div>
-                {% endif %}
+  seccionesData.forEach(function (s) {
+    const canvas = document.getElementById('chart-' + s.clave);
+    if (!canvas) return;
 
-                <div class="alerta-card {{ s.alerta.nivel }}">
-                    {{ s.alerta.mensaje }}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </main>
+    const colores = s.valores.map(function (_, i) {
+      return i === s.indicePrediccion ? '#C2185B' : '#F8D3E3';
+    });
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: s.labels,
+        datasets: [{
+          data: s.valores,
+          backgroundColor: colores,
+          borderRadius: 6,
+          maxBarThickness: 30,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#2E2430',
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function (ctx) {
+                const esPrediccion = ctx.dataIndex === s.indicePrediccion;
+                const valor = ctx.parsed.y;
+                return esPrediccion ? 'Predicción: ' + valor : 'Vendidas: ' + valor;
+              },
+            },
+          },
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#F5E5EC' }, ticks: { color: '#8C7A85', font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { color: '#8C7A85', font: { size: 10 } } },
+        },
+      },
+    });
+  });
+</script>
 </body>
 </html>
+
