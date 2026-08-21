@@ -20,11 +20,15 @@ class ProductoForm(forms.ModelForm):
 class ItemCarruselForm(forms.ModelForm):
     class Meta:
         model = ItemCarrusel
-        fields = ['tipo', 'producto', 'imagen', 'titulo', 'subtitulo', 'texto_boton', 'url_destino', 'orden', 'activo']
+        fields = [
+            'tipo', 'producto', 'imagen', 'ajuste_imagen',
+            'titulo', 'subtitulo', 'texto_boton', 'url_destino', 'orden', 'activo',
+        ]
         widgets = {
             'tipo': forms.Select(attrs={'class': 'campo-input', 'id': 'id_tipo'}),
             'producto': forms.Select(attrs={'class': 'campo-input'}),
             'imagen': forms.ClearableFileInput(attrs={'class': 'campo-file'}),
+            'ajuste_imagen': forms.Select(attrs={'class': 'campo-input', 'id': 'id_ajuste_imagen'}),
             'titulo': forms.TextInput(attrs={'class': 'campo-input', 'placeholder': "Ej: Mes del amor y la amistad"}),
             'subtitulo': forms.TextInput(attrs={'class': 'campo-input', 'placeholder': "Ej: El mes perfecto para tu pedido"}),
             'texto_boton': forms.TextInput(attrs={'class': 'campo-input', 'placeholder': "Ver más"}),

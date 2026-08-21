@@ -162,7 +162,10 @@ def crear_item_carrusel(request):
     else:
         form = ItemCarruselForm()
 
-    return render(request, 'catalogo/crear_item_carrusel.html', {'form': form})
+    return render(request, 'catalogo/crear_item_carrusel.html', {
+        'form': form,
+        'item': None,
+    })
 
 
 @login_required(login_url='usuarios:login')
@@ -184,9 +187,8 @@ def editar_item_carrusel(request, pk):
     return render(request, 'catalogo/crear_item_carrusel.html', {
         'form': form,
         'editar': True,
+        'item': item,
     })
-
-
 @login_required(login_url='usuarios:login')
 def eliminar_item_carrusel(request, pk):
     if not request.user.es_admin:

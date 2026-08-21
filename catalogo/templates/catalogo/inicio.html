@@ -11,8 +11,15 @@
         {% for item in items_carrusel %}
         <div class="carrusel-slide">
             {% if item.imagen_url %}
-            <img src="{{ item.imagen_url }}" alt="{% if item.titulo %}{{ item.titulo }}{% elif item.producto %}{{ item.producto.nombre }}{% endif %}">
+            {% if item.ajuste_imagen == 'CONTENER' %}
+            <div class="carrusel-fondo-difuminado" style="background-image: url('{{ item.imagen_url }}');"></div>
             {% endif %}
+            <img src="{{ item.imagen_url }}"
+     alt="..."
+     class="carrusel-imagen carrusel-imagen-{{ item.ajuste_imagen|lower }}"
+     {% if item.ajuste_imagen == 'CUBRIR' %}
+     style="object-position: {{ item.foco_x|default:50 }}% {{ item.foco_y|default:50 }}%;"
+     {% endif %}>
             <div class="carrusel-overlay"></div>
             <div class="carrusel-contenido">
                 {% if item.tipo == 'BANNER' %}
@@ -27,6 +34,7 @@
                     <a href="{% url 'catalogo:detalle_producto' item.producto.id %}" class="btn-hero-solido">Ver detalle</a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -121,7 +129,24 @@
 </section>
 
 {% include 'pedidos/_crea_detalle_seccion.html' %}
-
+<section class="mision-vision">
+    <div class="mision-vision-grid">
+        <div class="mv-card">
+            <span class="mv-icono">🌱</span>
+            <h3>Misión</h3>
+            <p>
+                [Aquí va el texto de la misión — pégalo cuando te lo entreguen]
+            </p>
+        </div>
+        <div class="mv-card">
+            <span class="mv-icono">🌸</span>
+            <h3>Visión</h3>
+            <p>
+                [Aquí va el texto de la visión — pégalo cuando te lo entreguen]
+            </p>
+        </div>
+    </div>
+</section>
 {% endblock %}
 
 {% block extra_style %}
@@ -180,11 +205,23 @@
     object-fit: cover;
     object-position: center;
     display: block;
+    position: relative;
+    z-index: 1;
+}
+.carrusel-fondo-difuminado {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(25px) brightness(0.65);
+    transform: scale(1.15);
+    z-index: 0;
 }
 .carrusel-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.55) 100%);
+    z-index: 1;
 }
 .carrusel-contenido {
     position: absolute;
@@ -194,6 +231,14 @@
     padding: 2rem 1.5rem;
     text-align: center;
     color: white;
+    z-index: 2;
+}
+.carrusel-imagen-cubrir {
+    object-fit: cover !important;
+}
+.carrusel-imagen-contener {
+    object-fit: contain !important;
+    background: transparent;
 }
 .carrusel-contenido h2 {
     font-family: Georgia, serif;
@@ -292,7 +337,42 @@
     color: white;
     border: 1px solid white;
 }
-
+.mision-vision {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 2.5rem;
+}
+.mision-vision-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+}
+.mv-card {
+    background: #fff7fa;
+    border: 1px solid #f0c0d4;
+    border-radius: 14px;
+    padding: 1.8rem 1.6rem;
+    text-align: center;
+}
+.mv-icono {
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 0.6rem;
+}
+.mv-card h3 {
+    color: #c2185b;
+    font-size: 1.15rem;
+    font-family: Georgia, serif;
+    margin-bottom: 0.6rem;
+}
+.mv-card p {
+    font-size: 13.5px;
+    color: #666;
+    line-height: 1.6;
+}
+@media (max-width: 600px) {
+    .mision-vision-grid { grid-template-columns: 1fr; }
+}
 .filtros {
     display: flex;
     flex-wrap: wrap;

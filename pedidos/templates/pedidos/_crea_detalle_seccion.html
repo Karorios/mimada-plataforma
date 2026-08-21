@@ -142,8 +142,7 @@
                     {% if extra.imagen %}
                         <img src="{{ extra.imagen.url }}" alt="{{ extra.nombre }}">
                     {% endif %}
-                    <span>{{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio }}){% endif %}</span>
-                </label>
+<span>{{ extra.nombre }} {% if extra.precio %}(+${{ extra.precio|floatformat:0 }}){% endif %}</span>                </label>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay adicionales cargados.</p>
                 {% endfor %}
@@ -159,8 +158,7 @@
                         <img src="{{ peluche.imagen.url }}" alt="{{ peluche.nombre }}">
                     {% endif %}
                     <span>{{ peluche.nombre }}</span>
-                    {% if peluche.precio %}<span class="precio-opcion">+${{ peluche.precio }}</span>{% endif %}
-                </button>
+{% if peluche.precio %}<span class="precio-opcion">+${{ peluche.precio|floatformat:0 }}</span>{% endif %}</span>                </button>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay peluches cargados.</p>
                 {% endfor %}

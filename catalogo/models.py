@@ -60,6 +60,15 @@ class ItemCarrusel(models.Model):
         upload_to='catalogo/carrusel/', blank=True, null=True,
         help_text="Solo si el tipo es 'Banner promocional'. Si es Producto, se usa la imagen del producto."
     )
+    AJUSTE_CHOICES = [
+        ('CONTENER', 'Mostrar imagen completa (con fondo difuminado)'),
+        ('RECORTAR', 'Recortar imagen a la medida del banner'),
+    ]
+    ajuste_imagen = models.CharField(
+        max_length=10, choices=AJUSTE_CHOICES, default='CONTENER',
+        help_text="Cómo se muestra la imagen dentro del banner."
+    )
+
     titulo = models.CharField(max_length=100, blank=True, help_text="Solo para banners. Ej: 'Mes del amor y la amistad'")
     subtitulo = models.CharField(max_length=200, blank=True, help_text="Solo para banners. Ej: 'El mes perfecto para hacer tu pedido'")
     texto_boton = models.CharField(max_length=40, blank=True, default="Ver más")

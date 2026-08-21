@@ -7,7 +7,7 @@
     <p class="subtitulo">Banners promocionales o productos destacados en el Home</p>
 </section>
 <div class="form-wrapper">
-    <form method="post" enctype="multipart/form-data" class="form-producto">
+    <form method="post" enctype="multipart/form-data" class="form-producto" id="form-carrusel">
         {% csrf_token %}
         {% for field in form %}
         <div class="campo-grupo {% if field.name == 'activo' %}campo-grupo-check{% endif %}"
@@ -20,6 +20,12 @@
                 <label class="campo-label">{{ field.label }}</label>
                 {{ field }}
             {% endif %}
+            {% if field.name == 'imagen' %}
+                <div class="preview-wrap" id="preview-wrap" style="{% if not item.imagen_url %}display:none;{% endif %}">
+                    <img id="preview-img" src="{% if item.imagen_url %}{{ item.imagen_url }}{% endif %}" alt="Vista previa">
+                    <button type="button" class="btn-recortar" id="btn-recortar" style="display:none;">✂️ Recortar imagen</button>
+                </div>
+            {% endif %}
             {% if field.errors %}
                 <p class="campo-error">{{ field.errors.0 }}</p>
             {% endif %}
@@ -29,6 +35,20 @@
             {% if editar %}Guardar cambios{% else %}Agregar al carrusel{% endif %}
         </button>
     </form>
+</div>
+
+<div class="recorte-modal" id="cropper-modal">
+    <div class="recorte-modal-inner">
+        <h3>Recorta la imagen para el banner</h3>
+        <div class="recorte-img-wrap">
+            <img id="cropper-img" src="" alt="Recortar">
+        </div>
+        <div class="recorte-acciones">
+
+            <button type="button" class="btn-cancelar-recorte" id="btn-cancelar-recorte">Cancelar</button>
+            <button type="button" class="btn-confirmar-recorte" id="btn-confirmar-recorte">Usar este recorte</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block extra_style %}
@@ -86,16 +106,97 @@
     margin-top: 0.5rem;
 }
 .btn-crear-producto:hover { background: #c2185b; }
+
+/* Vista previa + recorte */
+.preview-wrap {
+    margin-top: 8px;
+    border: 1px solid #f0c0d4;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fdf0f5;
+}
+.preview-wrap img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 21 / 9;
+    object-fit: cover;
+}
+.btn-recortar {
+    display: block;
+    width: 100%;
+    background: white;
+    border: none;
+    border-top: 1px solid #f0c0d4;
+    color: #c2185b;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+    cursor: pointer;
+}
+.btn-recortar:hover { background: #fdf0f5; }
+.recorte-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.recorte-modal.activo { display: flex; }
+.recorte-modal-inner {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    max-width: 700px;
+    width: 100%;
+}
+.recorte-modal-inner h3 {
+    color: #c2185b;
+    font-size: 1.1rem;
+    margin: 0 0 1rem;
+    text-align: center;
+}
+.recorte-img-wrap {
+    max-height: 60vh;
+    overflow: hidden;
+}
+#cropper-img { display: block; max-width: 100%; }
+.recorte-acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+.recorte-acciones button {
+    flex: 1;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+.btn-cancelar-recorte { background: #f0f0f0; color: #666; }
+.btn-cancelar-recorte:hover { background: #e2e2e2; }
+.btn-confirmar-recorte { background: #e91e8c; color: white; }
+.btn-confirmar-recorte:hover { background: #c2185b; }
 {% endblock %}
 {% block extra_scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const tipoSelect = document.getElementById('id_tipo');
     if (!tipoSelect) return;
 
-    const camposBanner = ['imagen', 'titulo', 'subtitulo', 'texto_boton', 'url_destino'];
+    const ajusteSelect = document.getElementById('id_ajuste_imagen');
+    const inputImagen = document.getElementById('id_imagen');
+
+    const camposBanner = ['imagen', 'ajuste_imagen', 'titulo', 'subtitulo', 'texto_boton', 'url_destino'];
     const camposProducto = ['producto'];
 
+    // --- Mostrar/ocultar campos según tipo (Producto vs Banner) ---
     function actualizarVisibilidad() {
         const esBanner = tipoSelect.value === 'BANNER';
         camposBanner.forEach(nombre => {
@@ -106,9 +207,87 @@ document.addEventListener('DOMContentLoaded', function () {
             const grupo = document.querySelector(`[data-campo="${nombre}"]`);
             if (grupo) grupo.style.display = esBanner ? 'none' : '';
         });
+        actualizarVisibilidadBotonRecorte();
     }
 
     tipoSelect.addEventListener('change', actualizarVisibilidad);
+
+    // --- Vista previa + recorte con Cropper.js ---
+    const ASPECTO_BANNER = 21 / 9; // ajustar aquí si el banner real del Home usa otra proporción
+
+    const previewWrap = document.getElementById('preview-wrap');
+    const previewImg = document.getElementById('preview-img');
+    const btnRecortar = document.getElementById('btn-recortar');
+    const modal = document.getElementById('cropper-modal');
+    const cropperImg = document.getElementById('cropper-img');
+    const btnCancelar = document.getElementById('btn-cancelar-recorte');
+    const btnConfirmar = document.getElementById('btn-confirmar-recorte');
+
+    let cropper = null;
+    let nombreArchivoActual = 'banner.jpg';
+
+    function actualizarVisibilidadBotonRecorte() {
+        if (!btnRecortar || !ajusteSelect) return;
+        const esBanner = tipoSelect.value === 'BANNER';
+        const debeRecortar = ajusteSelect.value === 'RECORTAR';
+        const hayImagen = previewWrap && previewWrap.style.display !== 'none' && previewImg.src;
+        btnRecortar.style.display = (esBanner && debeRecortar && hayImagen) ? '' : 'none';
+    }
+
+    if (ajusteSelect) {
+        ajusteSelect.addEventListener('change', actualizarVisibilidadBotonRecorte);
+    }
+
+    if (inputImagen) {
+        inputImagen.addEventListener('change', function () {
+            const archivo = inputImagen.files[0];
+            if (!archivo) return;
+            nombreArchivoActual = archivo.name;
+            previewImg.src = URL.createObjectURL(archivo);
+            previewWrap.style.display = '';
+            actualizarVisibilidadBotonRecorte();
+        });
+    }
+
+    if (btnRecortar) {
+        btnRecortar.addEventListener('click', function () {
+            cropperImg.src = previewImg.src;
+            modal.classList.add('activo');
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(cropperImg, {
+                aspectRatio: ASPECTO_BANNER,
+                viewMode: 1,
+                autoCropArea: 1,
+                background: false,
+            });
+        });
+    }
+
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function () {
+            if (cropper) { cropper.destroy(); cropper = null; }
+            modal.classList.remove('activo');
+        });
+    }
+
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', function () {
+            if (!cropper) return;
+            cropper.getCroppedCanvas().toBlob(function (blob) {
+                const archivoRecortado = new File([blob], nombreArchivoActual, { type: blob.type || 'image/jpeg' });
+                const dt = new DataTransfer();
+                dt.items.add(archivoRecortado);
+                inputImagen.files = dt.files;
+
+                previewImg.src = URL.createObjectURL(archivoRecortado);
+
+                cropper.destroy();
+                cropper = null;
+                modal.classList.remove('activo');
+            }, 'image/jpeg', 0.92);
+        });
+    }
+
     actualizarVisibilidad();
 });
 </script>
