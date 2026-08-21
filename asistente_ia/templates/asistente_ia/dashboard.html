@@ -176,6 +176,7 @@
     }
 
     .flor-grid {
+      align-items: start;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 18px;
@@ -194,7 +195,7 @@
     }
     .flor-card__titulo { font-size: 1rem; font-weight: 700; margin: 0; }
     .flor-card__subtitulo { font-size: 0.72rem; color: var(--texto-suave); }
-    .flor-card__chart-wrap { height: 140px; position: relative; }
+    .flor-card__chart-wrap { height: 190px; position: relative; }
 
     .flor-card__alerta {
       margin-top: 14px;
@@ -226,7 +227,7 @@
     }
     .cinta-card__label { font-weight: 700; font-size: 0.9rem; }
     .cinta-card__estado {
-      font-size: 0.8rem;
+      font-size: 1.0rem;
       padding: 8px 14px;
       border-radius: 10px;
       font-weight: 500;
@@ -234,6 +235,11 @@
     .cinta-card__estado.nivel-ALERTA { background: var(--alerta-bg); color: var(--alerta); }
     .cinta-card__estado.nivel-OK { background: var(--ok-bg); color: var(--ok); }
     .cinta-card__estado.nivel-SIN_DATOS { background: var(--sin-datos-bg); color: var(--sin-datos); }
+
+    .flor-grid--evento {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 380px));
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -317,7 +323,7 @@
     <p style="font-size:0.72rem; color:var(--texto-suave); margin: 14px 0 6px;">
       Historial en {{ nombre_fecha_proxima }}
     </p>
-    <div class="flor-card__chart-wrap" style="height: 110px;">
+    <div class="flor-card__chart-wrap" style="height: 150px;">
       <canvas id="chart-evento-{{ seccion.clave }}"></canvas>
     </div>
     {% endif %}
