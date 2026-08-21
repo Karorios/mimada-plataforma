@@ -264,12 +264,17 @@
                 <div class="user-menu-dropdown" id="user-menu-dropdown">
 
                     {% if user.es_admin %}
+
+                    <a href="{% url 'inventario:dashboard' %}">
+                        Inventario
+                    </a>
+
                     <a href="{% url 'catalogo:admin_dashboard' %}">
                         Catálogo
                     </a>
 
-                    <a href="{% url 'inventario:dashboard' %}">
-                        Inventario
+                    <a href="{% url 'catalogo:carrusel_dashboard' %}">
+                        Carrusel
                     </a>
 
                     <a href="{% url 'pedidosadmin:dashboard' %}">

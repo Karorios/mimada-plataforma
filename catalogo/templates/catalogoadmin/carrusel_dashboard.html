@@ -128,15 +128,7 @@
             <span class="nav-icon"></span> Asistente IA
         </a>
     </nav>
-    <div class="sidebar-footer">
-        <div class="avatar-mini">
-            {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
-        </div>
-        <div class="user-info-mini">
-            <p>{{ request.user.get_full_name|default:request.user.username }}</p>
-            <p>Administrador</p>
-        </div>
-    </div>
+
 </aside>
 
 <main class="main">

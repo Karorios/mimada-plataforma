@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mimada Admin - Inventario</title>
     {% load static %}
+    {% load humanize %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -217,8 +218,21 @@
                         {{ item.nombre }}
                     </td>
                     <td>{{ item.categoria.nombre }}</td>
-                    <td>{{ item.stock_actual }} {{ item.get_unidad_medida_display }}</td>
-                    <td>{{ item.stock_minimo }}</td>
+                    <td>
+                        {% if item.unidad_medida == 'METRO' %}
+                            {{ item.stock_actual|floatformat:2 }}
+                        {% else %}
+                            {{ item.stock_actual|floatformat:0 }}
+                        {% endif %}
+                        {{ item.get_unidad_medida_display }}
+                    </td>
+                    <td>
+                        {% if item.unidad_medida == 'METRO' %}
+                            {{ item.stock_minimo|floatformat:2 }}
+                        {% else %}
+                            {{ item.stock_minimo|floatformat:0 }}
+                        {% endif %}
+                    </td>
                     <td><span class="badge {{ item.estado }}">{{ item.estado_display }}</span></td>
                     <td class="acciones">
                         <a href="{% url 'inventario:item_editar' item.pk %}" class="editar">✏️ Editar</a>
@@ -247,7 +261,7 @@
 
         <div class="resumen-valor">
             <div class="stat-label">Valor Total en Inventario</div>
-            <div class="stat-value">${{ total_valor|floatformat:0 }}</div>
+            <div class="stat-value">${{ total_valor|floatformat:0|intcomma }}</div>
         </div>
     </main>
 

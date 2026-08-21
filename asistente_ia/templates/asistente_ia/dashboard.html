@@ -6,6 +6,51 @@
   <title>Asistente IA · Mimada Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
+        .sidebar {
+            width: 220px; background: white; border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
+        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
+        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: #fdf0f5; }
+        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto; display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
+        }
+        .avatar-mini {
+            width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;
+        }
+        .user-info-mini p:first-child { font-weight: 600; color: #333; }
+        .user-info-mini p:last-child { color: #999; font-size: 11px; }
+
+        .main { flex: 1; padding: 2rem; }
+        .main-header h2 { font-size: 26px; color: #333; }
+        .main-header p { color: #999; font-size: 14px; margin-top: 4px; margin-bottom: 1.2rem; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 1.2rem; border-bottom: 1px solid #f5d5e3; }
+        .tab {
+            padding: 8px 16px; font-size: 13px; color: #999; text-decoration: none;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active { color: #c2185b; font-weight: 600; border-bottom-color: #c2185b; }
+
+        .toolbar { margin-bottom: 1.2rem; }
+        .search-box {
+            border: 1px solid #f5d5e3; border-radius: 20px; padding: 10px 16px;
+            font-size: 14px; width: 100%; max-width: 320px; outline: none;
+        }
     :root {
       --bg: #FBE8EF;
       --sidebar-bg: #FFFFFF;
@@ -178,19 +223,30 @@
 <div class="layout">
 
   <!-- ============ SIDEBAR ============ -->
-  <!-- Reemplaza esto por tu {% include 'sidebar.html' %} real si ya lo tienes aparte -->
-  <aside class="sidebar">
-    <p class="sidebar__brand">Mimada Admin</p>
-    <p class="sidebar__sub">GESTIÓN FLORAL</p>
-    <a href="#" class="sidebar__item">Inicio</a>
-    <a href="#" class="sidebar__item">Inventario</a>
-    <a href="#" class="sidebar__item">Catálogo</a>
-    <a href="#" class="sidebar__item">Carrusel</a>
-    <a href="#" class="sidebar__item">Pedidos</a>
-    <a href="#" class="sidebar__item">Finanzas</a>
-    <a href="#" class="sidebar__item activo">Asistente IA</a>
-  </aside>
 
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Mimada Admin</h1>
+      <p>GESTIÓN FLORAL</p>
+    </div>
+    <nav>
+      <a href="{% url 'home' %}" class="nav-link"><span class="nav-icon"></span> Inicio</a>
+      <a href="{% url 'inventario:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Inventario</a>
+      <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link"><span class="nav-icon"></span> Catálogo</a>
+      <a href="{% url 'catalogo:carrusel_dashboard' %}" class="nav-link"><span class="nav-icon"></span> Carrusel</a>
+      <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Pedidos</a>
+      <a href="{% url 'finanzas:dashboard' %}" class="nav-link"><span class="nav-icon"></span> Finanzas</a>
+      <a href="{% url 'asistente_ia:dashboard' %}" class="nav-link active"><span class="nav-icon"></span> Asistente IA</a>
+
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar-mini">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</div>
+      <div class="user-info-mini">
+        <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+        <p>Admin Principal</p>
+      </div>
+    </div>
+    </aside>
   <!-- ============ CONTENIDO ============ -->
   <main class="main">
     <div class="main__header">
@@ -204,7 +260,7 @@
           {% endif %}
         </p>
       </div>
-      <button class="btn-magenta">Actualizar predicción</button>
+
     </div>
 
     <!-- KPIs de ejemplo — cámbialos por los tuyos si ya tienes otros -->
@@ -227,18 +283,37 @@
           <span class="flor-card__subtitulo">Últimas semanas</span>
         </div>
 
-        <div class="flor-card__chart-wrap">
-          <canvas id="chart-{{ seccion.clave }}"></canvas>
-        </div>
+            <div class="flor-card__chart-wrap">
+      <canvas id="chart-{{ seccion.clave }}"></canvas>
+    </div>
 
-        {% if seccion.alerta %}
-        <div class="flor-card__alerta nivel-{{ seccion.alerta.nivel }}">
-          <span class="flor-card__alerta-icono">
-            {% if seccion.alerta.nivel == 'OK' %}✓{% elif seccion.alerta.nivel == 'SIN_DATOS' %}·{% else %}!{% endif %}
-          </span>
-          <span>{{ seccion.alerta.mensaje }}</span>
-        </div>
-        {% endif %}
+    {% if seccion.alerta_semanal and seccion.alerta_semanal.nivel != 'SIN_DATOS' %}
+    <div class="flor-card__alerta nivel-{{ seccion.alerta_semanal.nivel }}">
+      <span class="flor-card__alerta-icono">
+        {% if seccion.alerta_semanal.nivel == 'OK' %}✓{% else %}!{% endif %}
+      </span>
+      <span>{{ seccion.alerta_semanal.mensaje }}</span>
+    </div>
+    {% endif %}
+
+    {% if seccion.tiene_evento %}
+    <p style="font-size:0.72rem; color:var(--texto-suave); margin: 14px 0 6px;">
+      Historial en {{ nombre_fecha_proxima }}
+    </p>
+    <div class="flor-card__chart-wrap" style="height: 110px;">
+      <canvas id="chart-evento-{{ seccion.clave }}"></canvas>
+    </div>
+    {% endif %}
+
+    {% if seccion.alerta %}
+    <div class="flor-card__alerta nivel-{{ seccion.alerta.nivel }}">
+      <span class="flor-card__alerta-icono">
+        {% if seccion.alerta.nivel == 'OK' %}✓{% elif seccion.alerta.nivel == 'SIN_DATOS' %}·{% else %}!{% endif %}
+      </span>
+      <span>{{ seccion.alerta.mensaje }}</span>
+    </div>
+    {% endif %}
+
       </div>
       {% endfor %}
     </div>
@@ -260,10 +335,14 @@
       clave: "{{ seccion.clave }}",
       labels: {{ seccion.chart_labels|safe }},
       valores: {{ seccion.chart_valores|safe }},
-      indicePrediccion: {{ seccion.indice_prediccion|default_if_none:"null" }},
+      indicePrediccion: null,
+      tieneEvento: {{ seccion.tiene_evento|yesno:"true,false" }},
+      eventoLabels: {{ seccion.evento_labels|safe }},
+      eventoValores: {{ seccion.evento_valores|safe }},
+      eventoIndicePrediccion: {{ seccion.evento_indice_prediccion|default_if_none:"null" }},
     },
     {% endfor %}
-  ];
+];
 
   seccionesData.forEach(function (s) {
     const canvas = document.getElementById('chart-' + s.clave);
@@ -310,6 +389,52 @@
       },
     });
   });
+  seccionesData.forEach(function (s) {
+    if (!s.tieneEvento) return;
+    const canvas = document.getElementById('chart-evento-' + s.clave);
+    if (!canvas) return;
+
+    const colores = s.eventoValores.map(function (_, i) {
+      return i === s.eventoIndicePrediccion ? '#C2185B' : '#F8D3E3';
+    });
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: s.eventoLabels,
+        datasets: [{
+          data: s.eventoValores,
+          backgroundColor: colores,
+          borderRadius: 6,
+          maxBarThickness: 40,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#2E2430',
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function (ctx) {
+                const esPrediccion = ctx.dataIndex === s.eventoIndicePrediccion;
+                const valor = ctx.parsed.y;
+                return esPrediccion ? 'Proyección: ' + valor : 'Vendidas: ' + valor;
+              },
+            },
+          },
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#F5E5EC' }, ticks: { color: '#8C7A85', font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { color: '#8C7A85', font: { size: 10 } } },
+        },
+      },
+    });
+});
 </script>
 </body>
 </html>

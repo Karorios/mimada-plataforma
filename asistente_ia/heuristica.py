@@ -1,15 +1,10 @@
 from decimal import Decimal, ROUND_CEILING
-from datetime import date
 from django.db.models import Sum
 from inventario.models import ItemInventario
 from .models import HistorialVentas
-from .holt import serie_anual_evento, holt_pronostico
-from django.db.models import Q
 
 # ---------------------------------------------------------------------------
 # Mapeo: cuántas unidades de cada flor trae un producto vendido.
-# Se usa para agrupar el consumo real de flores, sin importar si se vendió
-# como unidad suelta o dentro de un ramo/combo.
 # ---------------------------------------------------------------------------
 
 CONTENIDO_ROSAS = {
@@ -37,10 +32,9 @@ CONTENIDO_LIRIOS = {
     'ramo de 6 lirios': 6,
 }
 
-# Nombre de la categoría en ItemInventario para cada flor (para sumar el stock)
 CATEGORIA_INVENTARIO_POR_FLOR = {
     'rosas': 'Rosas',
-    'girasoles': 'Girasoles',
+    'girasoles': 'girasoles',
     'lirios': 'Lirios',
 }
 
@@ -48,7 +42,13 @@ METROS_CINTA_POR_ROSA = Decimal('1.10')
 
 MINIMO_SEMANAS_DEFAULT = 5
 
-def  cargar_historial():
+
+# ---------------------------------------------------------------------------
+# Carga única del historial — llamar UNA vez por request y pasar el resultado
+# a todas las demás funciones vía el parámetro `historial`.
+# ---------------------------------------------------------------------------
+
+def cargar_historial():
     """Trae TODO el historial de ventas en una sola query, como lista en
     memoria. Pásalo como `historial=` a las demás funciones para evitar que
     cada una vuelva a consultar la base por separado."""
@@ -73,23 +73,93 @@ def _obtener_historial(historial):
     return historial if historial is not None else cargar_historial()
 
 
-def factor_crecimiento_otras_fechas_flor(mapeo_contenido, excluir_evento=None):
-    """Promedio del crecimiento año-a-año observado en OTROS eventos
-    comerciales (agregados por flor), para estimar un evento que
-    todavía solo tiene 1 año de historia."""
-    eventos = (
-        HistorialVentas.objects
-        .exclude(fecha_comercial__isnull=True)
-        .exclude(fecha_comercial='')
-        .values_list('fecha_comercial', flat=True)
-        .distinct()
-    )
+# ---------------------------------------------------------------------------
+# Consumo agregado por FLOR (rosas / girasoles / lirios).
+# ---------------------------------------------------------------------------
+
+def total_flor_por_semana(mapeo_contenido, fecha_inicio_semana, historial=None):
+    """Suma la cantidad total de una flor vendida en una semana específica,
+    sumando entre TODOS los productos que la contienen."""
+    registros = _obtener_historial(historial)
+    total = Decimal('0')
+    for r in registros:
+        if r.fecha_inicio != fecha_inicio_semana:
+            continue
+        factor = mapeo_contenido.get(r.producto.strip().lower())
+        if factor:
+            total += Decimal(r.cantidad) * Decimal(factor)
+    return total
+
+
+def serie_semanal_flor_normal(mapeo_contenido, historial=None):
+    """Serie semana a semana, EXCLUYENDO fechas comerciales, para la
+    tendencia normal de consumo."""
+    registros = _obtener_historial(historial)
+    semanas = set()
+    acumulado = {}
+    for r in registros:
+        if r.fecha_comercial not in (None, ''):
+            continue
+        semanas.add(r.fecha_inicio)
+        factor = mapeo_contenido.get(r.producto.strip().lower())
+        if factor:
+            acumulado[r.fecha_inicio] = acumulado.get(r.fecha_inicio, Decimal('0')) + Decimal(r.cantidad) * Decimal(factor)
+    return [(s, acumulado.get(s, Decimal('0'))) for s in sorted(semanas)]
+
+
+def serie_anual_evento_agregada(mapeo_contenido, nombre_fecha_comercial, historial=None):
+    """Como serie_anual_evento, pero sumando TODOS los productos que
+    contienen esa flor, y usando MAX cuando dos fecha_inicio distintas
+    caen en el mismo año para el mismo evento."""
+    registros = _obtener_historial(historial)
+
+    # total por fecha_inicio, solo para este evento
+    totales_por_fecha = {}
+    for r in registros:
+        if (r.fecha_comercial or '').lower() != nombre_fecha_comercial.lower():
+            continue
+        factor = mapeo_contenido.get(r.producto.strip().lower())
+        if not factor:
+            continue
+        totales_por_fecha[r.fecha_inicio] = totales_por_fecha.get(r.fecha_inicio, Decimal('0')) + Decimal(r.cantidad) * Decimal(factor)
+
+    # colapsar por año con MAX
+    totales_por_año = {}
+    for fecha, total in totales_por_fecha.items():
+        año = fecha.year
+        if año not in totales_por_año or total > totales_por_año[año]:
+            totales_por_año[año] = total
+
+    return sorted(totales_por_año.items())
+
+
+def semanas_con_venta_de_flor(mapeo_contenido, minimo=MINIMO_SEMANAS_DEFAULT, historial=None):
+    """Cuenta en cuántas semanas distintas se vendió algo de esta flor,
+    sin importar la fecha."""
+    registros = _obtener_historial(historial)
+    semanas = set()
+    for r in registros:
+        factor = mapeo_contenido.get(r.producto.strip().lower())
+        if factor and r.cantidad > 0:
+            semanas.add(r.fecha_inicio)
+    return len(semanas)
+
+
+def factor_crecimiento_otras_fechas_flor(mapeo_contenido, excluir_evento=None, historial=None):
+    """Promedio del crecimiento año-a-año en OTROS eventos comerciales,
+    para estimar un evento que todavía solo tiene 1 año de historia."""
+    registros = _obtener_historial(historial)
+
+    eventos = set()
+    for r in registros:
+        if r.fecha_comercial:
+            eventos.add(r.fecha_comercial)
 
     factores = []
     for evento in eventos:
         if evento == excluir_evento:
             continue
-        serie = serie_anual_evento_agregada(mapeo_contenido, evento)
+        serie = serie_anual_evento_agregada(mapeo_contenido, evento, historial=registros)
         if len(serie) >= 2:
             valores = [total for _, total in serie]
             if valores[0] and valores[0] != 0:
@@ -102,61 +172,13 @@ def factor_crecimiento_otras_fechas_flor(mapeo_contenido, excluir_evento=None):
     return max(Decimal('0.8'), min(Decimal('1.8'), promedio))
 
 
-# ---------------------------------------------------------------------------
-# NUEVO: consumo agregado por FLOR (rosas / girasoles / lirios), sumando
-# entre todos los productos que la contienen (unidad suelta + ramos/combos).
-# ---------------------------------------------------------------------------
+def necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial, historial=None):
+    """Proyecta cuántas unidades de una flor se van a necesitar para la
+    próxima ocurrencia de una fecha comercial."""
+    from .holt import holt_pronostico  # import local para evitar ciclo si holt.py cambia
 
-def total_flor_por_semana(mapeo_contenido, fecha_inicio_semana):
-    """Suma la cantidad total de una flor vendida en una semana específica,
-    sumando entre TODOS los productos que la contienen."""
-    registros = HistorialVentas.objects.filter(fecha_inicio=fecha_inicio_semana)
-    total = Decimal('0')
-    for r in registros:
-        factor = mapeo_contenido.get(r.producto.strip().lower())
-        if factor:
-            total += Decimal(r.cantidad) * Decimal(factor)
-    return total
-
-
-def serie_semanal_flor_normal(mapeo_contenido):
-    registros = (
-        HistorialVentas.objects
-        .filter(Q(fecha_comercial__isnull=True) | Q(fecha_comercial=''))
-        .order_by('fecha_inicio')
-    )
-    semanas = set()
-    acumulado = {}
-    for r in registros:
-        semanas.add(r.fecha_inicio)
-        factor = mapeo_contenido.get(r.producto.strip().lower())
-        if factor:
-            acumulado[r.fecha_inicio] = acumulado.get(r.fecha_inicio, Decimal('0')) + Decimal(r.cantidad) * Decimal(factor)
-    return [(s, acumulado.get(s, Decimal('0'))) for s in sorted(semanas)]
-
-
-def serie_anual_evento_agregada(mapeo_contenido, nombre_fecha_comercial):
-    """Como serie_anual_evento, pero sumando TODOS los productos que
-    contienen esa flor, y usando MAX (no SUM) cuando dos fecha_inicio
-    distintas caen en el mismo año para el mismo evento."""
-    fechas = (
-        HistorialVentas.objects
-        .filter(fecha_comercial__iexact=nombre_fecha_comercial)
-        .values_list('fecha_inicio', flat=True).distinct()
-    )
-
-    totales_por_año = {}
-    for f in fechas:
-        total_semana = total_flor_por_semana(mapeo_contenido, f)
-        año = f.year
-        if año not in totales_por_año or total_semana > totales_por_año[año]:
-            totales_por_año[año] = total_semana
-
-    return sorted(totales_por_año.items())
-
-
-def necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial):
-    serie = serie_anual_evento_agregada(mapeo_contenido, nombre_fecha_comercial)
+    registros = _obtener_historial(historial)
+    serie = serie_anual_evento_agregada(mapeo_contenido, nombre_fecha_comercial, historial=registros)
     valores = [total for _, total in serie]
 
     if len(valores) >= 2:
@@ -164,7 +186,7 @@ def necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial):
         return resultado['pronostico'].to_integral_value(rounding=ROUND_CEILING)
 
     if len(valores) == 1:
-        factor = factor_crecimiento_otras_fechas_flor(mapeo_contenido, excluir_evento=nombre_fecha_comercial)
+        factor = factor_crecimiento_otras_fechas_flor(mapeo_contenido, excluir_evento=nombre_fecha_comercial, historial=registros)
         if factor:
             return (valores[0] * factor).to_integral_value(rounding=ROUND_CEILING)
         return valores[0].to_integral_value(rounding=ROUND_CEILING)
@@ -172,7 +194,10 @@ def necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial):
     return None
 
 
-def alerta_stock_flor_fecha_comercial(nombre_flor, nombre_fecha_comercial, dias_entrega_proveedor=3, minimo_semanas=5):
+def alerta_stock_flor_fecha_comercial(nombre_flor, nombre_fecha_comercial, dias_entrega_proveedor=3,
+                                        minimo_semanas=MINIMO_SEMANAS_DEFAULT, historial=None, stock_por_categoria=None):
+    """Revisa si el stock actual de una flor alcanza para la próxima
+    fecha comercial. nombre_flor: 'rosas' | 'girasoles' | 'lirios'."""
     mapeos = {'rosas': CONTENIDO_ROSAS, 'girasoles': CONTENIDO_GIRASOLES, 'lirios': CONTENIDO_LIRIOS}
     mapeo_contenido = mapeos.get(nombre_flor)
     categoria_inventario = CATEGORIA_INVENTARIO_POR_FLOR.get(nombre_flor)
@@ -180,18 +205,19 @@ def alerta_stock_flor_fecha_comercial(nombre_flor, nombre_fecha_comercial, dias_
     if not mapeo_contenido or not categoria_inventario:
         return None
 
-    if semanas_con_venta_de_flor(mapeo_contenido, minimo_semanas) < minimo_semanas:
+    registros = _obtener_historial(historial)
+
+    if semanas_con_venta_de_flor(mapeo_contenido, minimo_semanas, historial=registros) < minimo_semanas:
         return {
             'nivel': 'SIN_DATOS',
             'mensaje': f"Todavía no hay suficiente historial de ventas de {nombre_flor} para hacer una predicción confiable.",
             'necesidad': None, 'stock_actual': None, 'faltante': None,
         }
 
-    stock_actual = ItemInventario.objects.filter(
-        categoria__nombre__iexact=categoria_inventario
-    ).aggregate(total=Sum('stock_actual'))['total'] or Decimal('0')
+    stock_dict = stock_por_categoria if stock_por_categoria is not None else cargar_stock_por_categoria()
+    stock_actual = stock_dict.get(categoria_inventario.lower(), Decimal('0'))
 
-    necesidad = necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial)
+    necesidad = necesidad_flor_fecha_comercial(mapeo_contenido, nombre_fecha_comercial, historial=registros)
     if necesidad is None:
         return None
 
@@ -216,39 +242,28 @@ def alerta_stock_flor_fecha_comercial(nombre_flor, nombre_fecha_comercial, dias_
         'stock_actual': stock_actual, 'faltante': max(faltante, Decimal('0')),
     }
 
-def semanas_con_venta_de_flor(mapeo_contenido, minimo=5):
-    """Cuenta en cuántas semanas distintas (de todo el historial) se vendió
-    algo de esta flor, sin importar la fecha. Sirve para decidir si hay
-    base suficiente para hacer cualquier tipo de proyección."""
-    registros = HistorialVentas.objects.all()
-    semanas = set()
-    for r in registros:
-        factor = mapeo_contenido.get(r.producto.strip().lower())
-        if factor and r.cantidad > 0:
-            semanas.add(r.fecha_inicio)
-    return len(semanas)
 
-
-
-def alerta_stock_cinta_fecha_comercial(nombre_fecha_comercial, dias_entrega_proveedor=3, minimo_semanas=5):
+def alerta_stock_cinta_fecha_comercial(nombre_fecha_comercial, dias_entrega_proveedor=3,
+                                         minimo_semanas=MINIMO_SEMANAS_DEFAULT, historial=None, stock_por_categoria=None):
     """Verifica si el stock de cinta (en metros) alcanza para la cantidad
     de rosas proyectada para la próxima fecha comercial."""
-    if semanas_con_venta_de_flor(CONTENIDO_ROSAS, minimo_semanas) < minimo_semanas:
+    registros = _obtener_historial(historial)
+
+    if semanas_con_venta_de_flor(CONTENIDO_ROSAS, minimo_semanas, historial=registros) < minimo_semanas:
         return {
             'nivel': 'SIN_DATOS',
             'mensaje': "Todavía no hay suficiente historial de ventas de rosas para proyectar el consumo de cinta.",
             'necesidad_metros': None, 'stock_actual_metros': None, 'faltante_metros': None,
         }
 
-    necesidad_rosas = necesidad_flor_fecha_comercial(CONTENIDO_ROSAS, nombre_fecha_comercial)
+    necesidad_rosas = necesidad_flor_fecha_comercial(CONTENIDO_ROSAS, nombre_fecha_comercial, historial=registros)
     if necesidad_rosas is None:
         return None
 
     necesidad_metros = (necesidad_rosas * METROS_CINTA_POR_ROSA).quantize(Decimal('0.01'))
 
-    stock_actual = ItemInventario.objects.filter(
-        categoria__nombre__iexact='Cintas'
-    ).aggregate(total=Sum('stock_actual'))['total'] or Decimal('0')
+    stock_dict = stock_por_categoria if stock_por_categoria is not None else cargar_stock_por_categoria()
+    stock_actual = stock_dict.get('cintas', Decimal('0'))
 
     faltante = necesidad_metros - stock_actual
 
@@ -271,14 +286,80 @@ def alerta_stock_cinta_fecha_comercial(nombre_fecha_comercial, dias_entrega_prov
         'stock_actual_metros': stock_actual, 'faltante_metros': max(faltante, Decimal('0')),
     }
 
-def resumen_rosas_y_cinta(nombre_fecha_comercial, dias_entrega_proveedor=3):
-    """Junta en un solo resultado la proyección de rosas necesarias y si
-    el stock de cinta alcanza para armarlas, para mostrar en el dashboard."""
-    rosas = alerta_stock_flor_fecha_comercial('rosas', nombre_fecha_comercial, dias_entrega_proveedor)
-    cinta = alerta_stock_cinta_fecha_comercial(nombre_fecha_comercial, dias_entrega_proveedor)
+
+def resumen_rosas_y_cinta(nombre_fecha_comercial, dias_entrega_proveedor=3, historial=None, stock_por_categoria=None):
+    """Junta en un solo resultado la proyección de rosas y si la cinta
+    alcanza, reutilizando el mismo historial/stock ya cargados."""
+    registros = _obtener_historial(historial)
+    stock_dict = stock_por_categoria if stock_por_categoria is not None else cargar_stock_por_categoria()
+
+    rosas = alerta_stock_flor_fecha_comercial('rosas', nombre_fecha_comercial, dias_entrega_proveedor,
+                                                historial=registros, stock_por_categoria=stock_dict)
+    cinta = alerta_stock_cinta_fecha_comercial(nombre_fecha_comercial, dias_entrega_proveedor,
+                                                 historial=registros, stock_por_categoria=stock_dict)
+
+    return {'fecha_comercial': nombre_fecha_comercial, 'rosas': rosas, 'cinta': cinta}
+
+
+def necesidad_flor_semana_siguiente(mapeo_contenido, historial=None):
+    """Proyecta cuántas unidades de una flor se necesitarán la PRÓXIMA
+    semana normal (sin fecha comercial), usando Holt sobre toda la serie
+    semanal histórica."""
+    from .holt import holt_pronostico
+
+    registros = _obtener_historial(historial)
+    serie = serie_semanal_flor_normal(mapeo_contenido, historial=registros)
+    valores = [total for _, total in serie]
+
+    if len(valores) < 2:
+        return None
+
+    resultado = holt_pronostico(valores)
+    return resultado['pronostico'].to_integral_value(rounding=ROUND_CEILING)
+
+
+def alerta_stock_flor_semana_siguiente(nombre_flor, dias_entrega_proveedor=3,
+                                         minimo_semanas=MINIMO_SEMANAS_DEFAULT,
+                                         historial=None, stock_por_categoria=None):
+    """Igual que alerta_stock_flor_fecha_comercial, pero para la semana
+    normal siguiente, no una fecha comercial."""
+    mapeos = {'rosas': CONTENIDO_ROSAS, 'girasoles': CONTENIDO_GIRASOLES, 'lirios': CONTENIDO_LIRIOS}
+    mapeo_contenido = mapeos.get(nombre_flor)
+    categoria_inventario = CATEGORIA_INVENTARIO_POR_FLOR.get(nombre_flor)
+
+    if not mapeo_contenido or not categoria_inventario:
+        return None
+
+    registros = _obtener_historial(historial)
+
+    if semanas_con_venta_de_flor(mapeo_contenido, minimo_semanas, historial=registros) < minimo_semanas:
+        return {
+            'nivel': 'SIN_DATOS',
+            'mensaje': f"Todavía no hay suficiente historial semanal de {nombre_flor} para proyectar la próxima semana.",
+            'necesidad': None, 'stock_actual': None, 'faltante': None,
+        }
+
+    stock_dict = stock_por_categoria if stock_por_categoria is not None else cargar_stock_por_categoria()
+    stock_actual = stock_dict.get(categoria_inventario.lower(), Decimal('0'))
+
+    necesidad = necesidad_flor_semana_siguiente(mapeo_contenido, historial=registros)
+    if necesidad is None:
+        return None
+
+    faltante = necesidad - stock_actual
+
+    if faltante > 0:
+        nivel = 'ALERTA'
+        mensaje = (
+            f"Para la próxima semana vas a necesitar ~{necesidad} {nombre_flor}, "
+            f"pero solo tienes {stock_actual}. Te faltan ~{faltante}. "
+            f"Pide con al menos {dias_entrega_proveedor} días de anticipación."
+        )
+    else:
+        nivel = 'OK'
+        mensaje = f"Para la próxima semana necesitas ~{necesidad} {nombre_flor}, y tienes {stock_actual}. Vas bien."
 
     return {
-        'fecha_comercial': nombre_fecha_comercial,
-        'rosas': rosas,
-        'cinta': cinta,
+        'nivel': nivel, 'mensaje': mensaje, 'necesidad': necesidad,
+        'stock_actual': stock_actual, 'faltante': max(faltante, Decimal('0')),
     }
