@@ -10,23 +10,40 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #fdf0f5; min-height: 100vh; display: flex; }
-        .sidebar {
-            width: 220px; background: white; border-right: 1px solid #f5d5e3;
-            padding: 1.5rem 1rem; display: flex; flex-direction: column; min-height: 100vh;
+        .alert-success{
+            background:#d4edda;
+            color:#155724;
+            border:1px solid #c3e6cb;
+            padding:14px 18px;
+            border-radius:10px;
+            margin-bottom:20px;
+            font-weight:600;
         }
-        .sidebar-brand { margin-bottom: 2rem; padding-left: 0.5rem; }
-        .sidebar-brand h1 { font-size: 18px; color: #c2185b; font-weight: 700; }
-        .sidebar-brand p { font-size: 11px; color: #999; letter-spacing: 0.05em; }
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid #f5d5e3;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .sidebar-brand { margin-bottom: 2rem; padding-left: .5rem; }
+        .sidebar-brand h1 { font-size: 18px; color: #c2185b; }
+        .sidebar-brand p { font-size: 11px; color: #999; }
         .nav-link {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
-            color: #666; text-decoration: none; font-size: 14px; margin-bottom: 4px;
+            display:flex; align-items:center; gap:10px;
+            padding:10px 12px; border-radius:8px;
+            text-decoration:none; color:#666; margin-bottom:5px;
         }
         .nav-link:hover { background: #fdf0f5; }
-        .nav-link.active { background: #fce4ec; color: #c2185b; font-weight: 600; border: 1px solid #f48fb1; }
-        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .nav-link.active {
+          background: #fce4ec; color: #c2185b;
+          font-weight: 600; border: 1px solid #f48fb1; }
+        .nav-icon { width:20px; text-align:center;   }
         .sidebar-footer {
-            margin-top: auto; display: flex; align-items: center; gap: 10px;
-            padding: 10px; border-top: 1px solid #f5d5e3; font-size: 13px;
+            margin-top: auto; display: flex; align-items: center;
+            padding: 10px; border-top: 1px solid #f5d5e3;
         }
         .avatar-mini {
             width: 32px; height: 32px; border-radius: 50%; background: #f48fb1;
