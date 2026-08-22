@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .heuristica import (
     CONTENIDO_ROSAS, CONTENIDO_GIRASOLES, CONTENIDO_LIRIOS,
     alerta_stock_flor_fecha_comercial, alerta_stock_cinta_fecha_comercial,
-    alerta_stock_flor_semana_siguiente,
+    alerta_stock_flor_semana_siguiente, serie_semanal_flor_completa,
     serie_semanal_flor_normal, serie_anual_evento_agregada,
     cargar_historial, cargar_stock_por_categoria,
 )
@@ -16,7 +16,7 @@ FLORES = [
     {'clave': 'lirios', 'nombre_display': 'Lirios', 'mapeo': CONTENIDO_LIRIOS},
 ]
 
-SEMANAS_A_MOSTRAR = 8
+SEMANAS_A_MOSTRAR = 7
 
 
 @login_required
@@ -36,7 +36,7 @@ def dashboard(request):
             )
 
         # Gráfico 1: tendencia semanal normal (sin mezclar con la predicción)
-        semanal = serie_semanal_flor_normal(flor['mapeo'], historial=historial)[-SEMANAS_A_MOSTRAR:]
+        semanal = serie_semanal_flor_completa(flor['mapeo'], historial=historial)[-SEMANAS_A_MOSTRAR:]
         labels = [f.strftime('%d %b') for f, _ in semanal]
         valores = [float(total) for _, total in semanal]
 

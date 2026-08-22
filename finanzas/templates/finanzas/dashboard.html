@@ -215,10 +215,52 @@
             background: #FFD6EF;
             border-color: #f5c2d9;
         }
+
+        /* ===== RESPONSIVE MÓVIL ===== */
+        .menu-toggle {
+            display: none;
+            background: white;
+            border: 1px solid #f5d5e3;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #c2185b;
+        }
+
+        .table-wrap { width: 100%; overflow-x: auto; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+
+            .menu-toggle { display: block; margin: 12px; }
+
+            .sidebar {
+                position: fixed; top: 0; left: 0; bottom: 0;
+                width: 220px; z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.25s;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            }
+            .sidebar.abierto { transform: translateX(0); }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.3); z-index: 99;
+            }
+            .sidebar-overlay.abierto { display: block; }
+
+            .main { padding: 1rem; margin-top: 0; }
+            .main-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .stats-row { grid-template-columns: 1fr !important; }
+            .clientes-grid { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body>
-
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('abierto'); document.querySelector('.sidebar-overlay').classList.toggle('abierto');">☰ Menú</button>
+    <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('abierto'); this.classList.remove('abierto');"></div>
     <aside class="sidebar">
         <div class="sidebar-brand">
             <h1>Mimada Admin</h1>
