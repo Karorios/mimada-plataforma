@@ -31,5 +31,9 @@ path('admin/carrusel/', views.carrusel_dashboard, name='carrusel_dashboard'),
     path('admin/carrusel/crear/', views.crear_item_carrusel, name='crear_item_carrusel'),
     path('admin/carrusel/editar/<int:pk>/', views.editar_item_carrusel, name='editar_item_carrusel'),
     path('admin/carrusel/eliminar/<int:pk>/', views.eliminar_item_carrusel, name='eliminar_item_carrusel'),
-
+    path('nosotros/', views.nosotros, name='nosotros'),
+    path('admin/destacados-mes/', views.destacados_mes_dashboard, name='destacados_mes_dashboard'),
+    path('admin/destacados-mes/crear/', views.crear_producto_del_mes, name='crear_producto_del_mes'),
+    path('admin/destacados-mes/editar/<int:pk>/', views.editar_producto_del_mes, name='editar_producto_del_mes'),
+    path('admin/destacados-mes/eliminar/<int:pk>/', views.eliminar_producto_del_mes, name='eliminar_producto_del_mes'),
 ]

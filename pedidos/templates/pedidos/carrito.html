@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
+{% load precio_tags %}
 
 {% block title %}Mimada | Tu carrito{% endblock %}
-
 {% block content %}
 <div class="contenedor-carrito">
     <h1>🛒 Tu carrito</h1>
@@ -26,8 +26,7 @@
 
             <div class="fila-carrito-info">
                 <h3>{{ item.nombre }}</h3>
-                <p class="precio-unitario-carrito">${{ item.precio_unitario|floatformat:0 }} c/u</p>
-                {% if item.tipo == "producto" %}
+                <p class="precio-unitario-carrito">${{ item.precio_unitario|formato_pesos }} c/u</p>                {% if item.tipo == "producto" %}
                 <form method="post" action="{% url 'pedidos:actualizar_cantidad_carrito' item.item_id %}" class="form-cantidad-carrito">
                     {% csrf_token %}
                     <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1">
@@ -39,7 +38,7 @@
             </div>
 
             <div class="fila-carrito-subtotal">
-                <p>${{ item.subtotal|floatformat:0 }}</p>
+                <p>${{ item.subtotal|formato_pesos }}</p>
                 <a href="{% url 'pedidos:eliminar_del_carrito' item.item_id %}" class="btn-eliminar-carrito">Eliminar</a>
             </div>
         </div>
@@ -50,9 +49,10 @@
         {% csrf_token %}
     </form>
 
-    <div class="resumen-carrito">
+        <div class="resumen-carrito">
         <p class="aviso-seleccion" id="aviso-seleccion-multiple" style="display:none;">Selecciona al menos un producto para continuar.</p>
-        <p class="total-carrito">Total seleccionado: <strong id="total-seleccionado">${{ total_carrito|floatformat:0 }}</strong></p>        <button type="button" class="btn-checkout" id="btn-checkout" disabled>
+        <p class="total-carrito">Total seleccionado: <strong id="total-seleccionado">${{ total_carrito|formato_pesos }}</strong></p>
+        <button type="button" class="btn-checkout" id="btn-checkout" disabled>
             Confirmar Pedido →
         </button>
     </div>

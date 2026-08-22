@@ -76,7 +76,7 @@
             <p class="vacio-inline">Puedes elegir hasta la misma cantidad de rosas que seleccionaste.</p>
             <div class="swatches" id="swatches-cintas">
                 {% for cinta in cintas %}
-                <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+                    <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
                 {% endfor %}

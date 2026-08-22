@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load precio_tags %}
 
 {% block title %}Mimada | Información del pedido{% endblock %}
 
@@ -37,16 +38,30 @@
                     <strong>Productos seleccionados:</strong>
                     <ul style="margin:8px 0 0 18px;">
                         {% for item in items_lote %}
-<li>{{ item.nombre }} x{{ item.cantidad }} — ${{ item.subtotal|floatformat:0 }}</li>                        {% endfor %}
+                        <li>{{ item.nombre }} x{{ item.cantidad }} — ${{ item.subtotal|formato_pesos }}</li>
+                        {% endfor %}
                     </ul>
-                </div>
+                    </div>
             {% else %}
                 <input type="hidden" name="producto" value="{{ producto }}">
                 <input type="hidden" name="cantidad" value="{{ cantidad }}">
                 <p class="nota-cantidad">Cantidad seleccionada: <strong>{{ cantidad }}</strong></p>
             {% endif %}
 
-            {{ form.as_p }}
+            {% for field in form %}
+<p>
+    <label for="{{ field.id_for_label }}">
+        {{ field.label }}{% if field.field.required or field.name == "direccion" or field.name == "barrio" %} <span class="campo-obligatorio">*</span>{% endif %}
+    </label>
+    {{ field }}
+    {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+    {% if field.errors %}
+        <ul class="errorlist">
+            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+</p>
+{% endfor %}
 
             <button type="submit" class="btn-continuar">Continuar al resumen →</button>
         </form>
@@ -176,6 +191,10 @@ input[type="checkbox"]{
     list-style:none;
     padding:0;
     margin:5px 0;
+}
+.campo-obligatorio {
+    color: #d63384;
+    font-weight: 700;
 }
 
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
+{% load precio_tags %}
 
 {% block title %}Resumen del pedido{% endblock %}
-
 {% block content %}
 
 <div class="contenedor">
@@ -21,7 +21,7 @@
         <td>
             <ul style="margin:0; padding-left:18px;">
                 {% for item in items %}
-                <li>{{ item.nombre }} x{{ item.cantidad }} — ${{ item.subtotal }}</li>
+                <li>{{ item.nombre }} x{{ item.cantidad }} — ${{ item.subtotal|formato_pesos }}</li>
                 {% endfor %}
             </ul>
         </td>
@@ -50,19 +50,19 @@
 
     <tr>
         <th>Subtotal productos</th>
-        <td>${{ subtotal_productos|floatformat:0 }}</td>
+        <td>${{ subtotal_productos|formato_pesos }}</td>
     </tr>
 
     {% if es_domicilio %}
     <tr>
         <th>Valor domicilio</th>
-        <td>${{ valor_domicilio|floatformat:0 }}</td>
+        <td>${{ valor_domicilio|formato_pesos }}</td>
     </tr>
     {% endif %}
 
     <tr>
         <th>Total</th>
-        <td><strong>${{ total|floatformat:0 }}</strong></td>
+        <td><strong>${{ total|formato_pesos }}</strong></td>
     </tr>
 
 </table>

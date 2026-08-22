@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mimada Admin - Carrusel</title>
+    <title>Mimada Admin - Productos del mes</title>
     {% load static %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -46,17 +46,6 @@
             border:1px solid #f48fb1; font-weight:600;
         }
         .nav-icon{ width:20px; text-align:center; }
-        .sidebar-footer{
-            margin-top:auto; display:flex; gap:10px; align-items:center;
-            border-top:1px solid #f5d5e3; padding:10px;
-        }
-        .avatar-mini{
-            width:34px; height:34px; border-radius:50%;
-            background:#f48fb1; display:flex; align-items:center;
-            justify-content:center; color:white; font-weight:bold;
-        }
-        .user-info-mini p:first-child{ font-weight:600; }
-        .user-info-mini p:last-child{ font-size:11px; color:#888; }
         .main{ flex:1; padding:2rem; }
         .main-header{
             display:flex; justify-content:space-between;
@@ -92,7 +81,7 @@
         .tipo-badge{
             padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600;
         }
-        .tipo-banner{ background:#e3f2fd; color:#1565c0; }
+        .tipo-personalizado{ background:#e3f2fd; color:#1565c0; }
         .tipo-producto{ background:#fce4ec; color:#c2185b; }
         .acciones a{ text-decoration:none; margin-right:10px; font-size:13px; }
         .editar{ color:#1976d2; }
@@ -116,10 +105,10 @@
         <a href="{% url 'catalogo:admin_dashboard' %}" class="nav-link">
             <span class="nav-icon"></span> Catálogo
         </a>
-                <a href="{% url 'catalogo:carrusel_dashboard' %}" class="nav-link active">
+        <a href="{% url 'catalogo:carrusel_dashboard' %}" class="nav-link">
             <span class="nav-icon"></span> Carrusel
         </a>
-        <a href="{% url 'catalogo:destacados_mes_dashboard' %}" class="nav-link">
+        <a href="{% url 'catalogo:destacados_mes_dashboard' %}" class="nav-link active">
             <span class="nav-icon"></span> Productos del mes
         </a>
         <a href="{% url 'pedidosadmin:dashboard' %}" class="nav-link">
@@ -138,16 +127,16 @@
 <main class="main">
     <div class="main-header">
         <div>
-            <h2>Carrusel del Home</h2>
-            <p>Administra los banners y productos destacados que aparecen en el inicio.</p>
+            <h2>Productos del mes</h2>
+            <p>Administra las cards destacadas que aparecen en el Home antes del catálogo.</p>
         </div>
         {% if messages %}
             {% for message in messages %}
                 <div class="alert-success">{{ message }}</div>
             {% endfor %}
         {% endif %}
-        <a href="{% url 'catalogo:crear_item_carrusel' %}" class="btn-primary">
-            + Agregar al carrusel
+        <a href="{% url 'catalogo:crear_producto_del_mes' %}" class="btn-primary">
+            + Agregar producto del mes
         </a>
     </div>
 
@@ -173,19 +162,13 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% if item.tipo == 'BANNER' %}
-                        <span class="tipo-badge tipo-banner">Banner</span>
+                    {% if item.tipo == 'PERSONALIZADO' %}
+                        <span class="tipo-badge tipo-personalizado">Personalizado</span>
                     {% else %}
                         <span class="tipo-badge tipo-producto">Producto</span>
                     {% endif %}
                 </td>
-                <td>
-                    {% if item.tipo == 'BANNER' %}
-                        {{ item.titulo|default:"—" }}
-                    {% else %}
-                        {{ item.producto.nombre|default:"—" }}
-                    {% endif %}
-                </td>
+                <td>{{ item.titulo_mostrar|default:"—" }}</td>
                 <td>{{ item.orden }}</td>
                 <td>
                     {% if item.activo %}
@@ -195,15 +178,15 @@
                     {% endif %}
                 </td>
                 <td class="acciones">
-                    <a href="{% url 'catalogo:editar_item_carrusel' item.id %}" class="editar">✏️ Editar</a>
-                    <a href="{% url 'catalogo:eliminar_item_carrusel' item.id %}" class="eliminar"
-                       onclick="return confirm('¿Eliminar este item del carrusel?');">🗑️ Eliminar</a>
+                    <a href="{% url 'catalogo:editar_producto_del_mes' item.id %}" class="editar">✏️ Editar</a>
+                    <a href="{% url 'catalogo:eliminar_producto_del_mes' item.id %}" class="eliminar"
+                       onclick="return confirm('¿Eliminar este producto del mes?');">🗑️ Eliminar</a>
                 </td>
             </tr>
         {% empty %}
             <tr>
                 <td colspan="6" style="text-align:center;padding:40px;color:#999;">
-                    No hay items en el carrusel todavía.
+                    No hay productos del mes todavía.
                 </td>
             </tr>
         {% endfor %}

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load precio_tags %}
 
 {% block title %}Mimada - Detalles hechos con amor{% endblock %}
 
@@ -30,7 +31,7 @@
                     {% endif %}
                 {% elif item.producto %}
                     <h2>{{ item.producto.nombre }}</h2>
-                    <p>${{ item.producto.precio|floatformat:0 }}</p>
+                    <p>${{ item.producto.precio|formato_pesos }}</p>
                     <a href="{% url 'catalogo:detalle_producto' item.producto.id %}" class="btn-hero-solido">Ver detalle</a>
                 {% endif %}
             </div>
@@ -66,6 +67,32 @@
         <button class="chip" data-filtro="{{ categoria.nombre }}">{{ categoria.get_nombre_display }}</button>
     {% endfor %}
 </section>
+{% if destacados_mes %}
+<section class="destacados-mes">
+    <h2>Productos del mes</h2>
+    <p class="subtitulo">Nuestras recomendaciones destacadas este mes</p>
+    <div class="grid-destacados-mes">
+        {% for item in destacados_mes %}
+        <div class="card-destacado-mes">
+            <div class="card-destacado-mes-imagen">
+                {% if item.imagen_url %}
+                    <img src="{{ item.imagen_url }}" alt="{{ item.titulo_mostrar }}">
+                {% else %}
+                    <div class="sin-imagen">🌸</div>
+                {% endif %}
+            </div>
+            <div class="card-destacado-mes-info">
+                <h3>{{ item.titulo_mostrar }}</h3>
+                {% if item.descripcion %}<p>{{ item.descripcion }}</p>{% endif %}
+                {% if item.url_mostrar %}
+                    <a href="{{ item.url_mostrar }}" class="btn-hero-solido">{{ item.texto_boton|default:"Ver producto" }}</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <section class="galeria">
     <h2>Nuestra selección</h2>
@@ -99,7 +126,7 @@
                 <h3><a href="{% url 'catalogo:detalle_producto' producto.id %}" class="link-nombre-producto">{{ producto.nombre }}</a></h3>
                 <p class="categoria-producto">{{ producto.categoria.get_nombre_display }}</p>
                 <div class="fila-precio">
-                    <p class="precio">${{ producto.precio|floatformat:0 }}</p>
+                    <p class="precio">${{ producto.precio|formato_pesos }}</p>
                 </div>
 
                 {% if producto.disponible %}
@@ -129,39 +156,6 @@
 </section>
 
 {% include 'pedidos/_crea_detalle_seccion.html' %}
-<section class="mision-vision">
-    <div class="mv-encabezado">
-        <img src="{% static 'img/logo.png' %}"
-             alt="Mimada - Detalles hechos con amor"
-             class="mv-logo">
-        <p class="mv-introduccion">
-            En Mimada creamos detalles pensados para celebrar, sorprender
-            y hacer especiales esos momentos que merecen ser recordados.
-        </p>
-    </div>
-
-    <div class="mision-vision-grid">
-        <div class="mv-card">
-            <h3>Misión</h3>
-            <p>
-                Crear y comercializar detalles personalizados para todo tipo
-                de ocasión o evento, ofreciendo productos de calidad y
-                personalizables para todos los gustos, mediante una
-                experiencia de compra cercana y amable.
-            </p>
-        </div>
-
-        <div class="mv-card">
-            <h3>Visión</h3>
-            <p>
-                Ser un emprendimiento reconocido en Bogotá y Soacha por la
-                creatividad y calidad de los detalles personalizados,
-                convirtiéndome en la opción preferida al momento de querer
-                regalar algo en momentos especiales.
-            </p>
-        </div>
-    </div>
-</section>
 {% endblock %}
 
 {% block extra_style %}
@@ -426,6 +420,55 @@
         width: 110px;
     }
 }
+.destacados-mes {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 0.5rem;
+}
+.destacados-mes h2 { font-size: 1.4rem; color: #c2185b; }
+.grid-destacados-mes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+}
+.card-destacado-mes {
+    background: white;
+    border: 1px solid #f0c0d4;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.card-destacado-mes-imagen img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+.card-destacado-mes-info {
+    padding: 1.2rem;
+}
+.card-destacado-mes-info h3 {
+    color: #c2185b;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+}
+.card-destacado-mes-info p {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+.card-destacado-mes-info .btn-hero-solido {
+    background: #e91e8c;
+    color: white;
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
 .filtros {
     display: flex;
     flex-wrap: wrap;
@@ -561,6 +604,20 @@
     box-sizing: border-box;
 }
 .vacio { text-align: center; color: #aaa; font-size: 14px; padding: 2rem 0; }
+.btn-ver-detalle {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: #e91e8c;
+    font-weight: 600;
+    padding: 8px 1rem 0;
+}
+.btn-ver-detalle:hover { color: #c2185b; text-decoration: underline; }
+.link-nombre-producto {
+    color: inherit;
+    text-decoration: none;
+}
+.link-nombre-producto:hover { color: #e91e8c; }
 {% endblock %}
 
 

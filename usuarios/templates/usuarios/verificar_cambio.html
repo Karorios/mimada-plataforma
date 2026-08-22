@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Mimada - Verificar cambio{% endblock %}
+
+{% block content %}
+<section class="cuenta-header">
+    <h1>Verifica tu identidad</h1>
+    <p class="subtitulo">Ingresa el código de 6 dígitos que enviamos a tu correo</p>
+</section>
+
+<div class="galeria">
+    <div class="tarjeta-cuenta">
+        <form method="post">
+            {% csrf_token %}
+            <div class="campo">
+                <label for="codigo">Código de verificación</label>
+                <input type="text" name="codigo" id="codigo" class="form-input" maxlength="6" autocomplete="one-time-code" autofocus>
+            </div>
+            <button type="submit" class="btn-guardar">Confirmar código</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_style %}
+.cuenta-header { text-align: center; padding: 2rem 1rem 0.5rem; }
+.cuenta-header h1 { color: #c2185b; font-size: 1.8rem; }
+.galeria { max-width: 500px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+.tarjeta-cuenta { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.8rem; }
+.campo { margin-bottom: 1.1rem; }
+.campo label { display: block; font-size: 13px; font-weight: 600; color: #c2185b; margin-bottom: 5px; }
+.form-input { width: 100%; padding: 10px 12px; border: 1px solid #f0c0d4; border-radius: 8px; font-size: 14px; font-family: inherit; text-align: center; letter-spacing: 4px; }
+.btn-guardar { width: 100%; background: #e91e8c; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+.btn-guardar:hover { background: #c2185b; }
+{% endblock %}

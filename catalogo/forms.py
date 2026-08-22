@@ -1,5 +1,6 @@
 from django import forms
 from .models import Producto, ItemCarrusel
+from .models import Producto, ItemCarrusel, ProductoDelMes
 
 
 class ProductoForm(forms.ModelForm):
@@ -36,3 +37,34 @@ class ItemCarruselForm(forms.ModelForm):
             'orden': forms.NumberInput(attrs={'class': 'campo-input'}),
             'activo': forms.CheckboxInput(attrs={'class': 'campo-check'}),
         }
+class ProductoDelMesForm(forms.ModelForm):
+    class Meta:
+
+                model = ProductoDelMes
+                fields = [
+                    'tipo', 'producto', 'imagen',
+                    'titulo', 'descripcion', 'texto_boton', 'url_destino', 'orden', 'activo',
+                ]
+
+                def clean(self):
+                    datos = super().clean()
+                    tipo = datos.get('tipo')
+                    producto = datos.get('producto')
+                    if tipo == 'PRODUCTO' and not producto:
+                        self.add_error('producto', 'Selecciona un producto del catálogo.')
+                    return datos
+
+                widgets = {
+                    'tipo': forms.Select(attrs={'class': 'campo-input', 'id': 'id_tipo'}),
+                    'producto': forms.Select(attrs={'class': 'campo-input'}),
+                    'imagen': forms.ClearableFileInput(attrs={'class': 'campo-file'}),
+                    'titulo': forms.TextInput(attrs={'class': 'campo-input', 'placeholder': "Ej: Ramo de rosas rojas"}),
+                    'descripcion': forms.TextInput(
+                        attrs={'class': 'campo-input', 'placeholder': "Descripción corta para la card"}),
+                    'texto_boton': forms.TextInput(attrs={'class': 'campo-input', 'placeholder': "Ver producto"}),
+                    'url_destino': forms.TextInput(
+                        attrs={'class': 'campo-input', 'placeholder': "/catalogo/producto/5/"}),
+                    'orden': forms.NumberInput(attrs={'class': 'campo-input'}),
+                    'activo': forms.CheckboxInput(attrs={'class': 'campo-check'}),
+
+                }

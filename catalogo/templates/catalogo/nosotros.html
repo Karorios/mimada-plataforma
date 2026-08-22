@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mimada - Nosotros{% endblock %}
+
+{% block content %}
+<section class="mision-vision">
+    <div class="mv-encabezado">
+        <img src="{% static 'img/logo.png' %}"
+             alt="Mimada - Detalles hechos con amor"
+             class="mv-logo">
+        <p class="mv-introduccion">
+            En Mimada creamos detalles pensados para celebrar, sorprender
+            y hacer especiales esos momentos que merecen ser recordados.
+        </p>
+    </div>
+
+    <div class="mision-vision-grid">
+        <div class="mv-card">
+            <h3>Misión</h3>
+            <p>
+                Crear y comercializar detalles personalizados para todo tipo
+                de ocasión o evento, ofreciendo productos de calidad y
+                personalizables para todos los gustos, mediante una
+                experiencia de compra cercana y amable.
+            </p>
+        </div>
+
+        <div class="mv-card">
+            <h3>Visión</h3>
+            <p>
+                Ser un emprendimiento reconocido en Bogotá y Soacha por la
+                creatividad y calidad de los detalles personalizados,
+                convirtiéndome en la opción preferida al momento de querer
+                regalar algo en momentos especiales.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_style %}
+.mision-vision {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+.mv-encabezado {
+    text-align: center;
+    max-width: 650px;
+    margin: 0 auto 2rem;
+}
+.mv-logo {
+    display: block;
+    width: 130px;
+    max-width: 45%;
+    height: auto;
+    margin: 0 auto 1rem;
+}
+.mv-introduccion {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0 auto;
+}
+.mision-vision-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 1.5rem;
+}
+.mv-card {
+    background: #fff7fa;
+    border: 1px solid #f0c0d4;
+    border-radius: 14px;
+    padding: 2rem 1.8rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mv-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(194, 24, 91, 0.08);
+}
+.mv-card h3 {
+    color: #c2185b;
+    font-size: 1.25rem;
+    font-family: Georgia, serif;
+    margin: 0 0 0.8rem;
+}
+.mv-card p {
+    font-size: 13.5px;
+    color: #666;
+    line-height: 1.7;
+    margin: 0;
+}
+@media (max-width: 600px) {
+    .mision-vision { padding: 2.5rem 1.2rem; }
+    .mision-vision-grid { grid-template-columns: 1fr; }
+    .mv-logo { width: 110px; }
+}
+{% endblock %}

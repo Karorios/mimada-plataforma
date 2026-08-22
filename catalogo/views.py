@@ -5,11 +5,14 @@ from django.contrib import messages
 from .models import Producto, Categoria, ItemCarrusel
 from .forms import ProductoForm, ItemCarruselForm
 from inventario.models import ItemInventario, CategoriaInventario
+from .models import Producto, Categoria, ItemCarrusel, ProductoDelMes
+from .forms import ProductoForm, ItemCarruselForm, ProductoDelMesForm
 
 def inicio(request):
     productos_destacados = Producto.objects.all()
     categorias = Categoria.objects.all()
     items_carrusel = ItemCarrusel.objects.filter(activo=True).select_related('producto')
+    destacados_mes = ProductoDelMes.objects.filter(activo=True).select_related('producto')
 
     def items_de(nombre_categoria):
         try:
@@ -29,6 +32,7 @@ def inicio(request):
         'productos_destacados': productos_destacados,
         'categorias': categorias,
         'items_carrusel': items_carrusel,
+        'destacados_mes': destacados_mes,
         'cintas': cintas,
         'papeles': papeles,
         'adicionales': adicionales,
@@ -198,3 +202,75 @@ def eliminar_item_carrusel(request, pk):
     item.delete()
     messages.success(request, "Item del carrusel eliminado.")
     return redirect('catalogo:carrusel_dashboard')
+def nosotros(request):
+    return render(request, 'catalogo/nosotros.html')
+
+@login_required(login_url='usuarios:login')
+def destacados_mes_dashboard(request):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    items = ProductoDelMes.objects.select_related('producto').all()
+
+    return render(request, 'catalogoadmin/destacados_mes_dashboard.html', {
+        'items': items,
+    })
+
+
+@login_required(login_url='usuarios:login')
+def crear_producto_del_mes(request):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ProductoDelMesForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✅ Producto del mes agregado.')
+            return redirect('catalogo:destacados_mes_dashboard')
+    else:
+        form = ProductoDelMesForm()
+
+    return render(request, 'catalogo/crear_producto_del_mes.html', {
+        'form': form,
+        'item': None,
+    })
+
+
+@login_required(login_url='usuarios:login')
+def editar_producto_del_mes(request, pk):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    item = get_object_or_404(ProductoDelMes, pk=pk)
+
+    if request.method == 'POST':
+        form = ProductoDelMesForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto del mes actualizado.')
+            return redirect('catalogo:destacados_mes_dashboard')
+    else:
+        form = ProductoDelMesForm(instance=item)
+
+    return render(request, 'catalogo/crear_producto_del_mes.html', {
+        'form': form,
+        'editar': True,
+        'item': item,
+    })
+
+
+@login_required(login_url='usuarios:login')
+@login_required(login_url='usuarios:login')
+def eliminar_producto_del_mes(request, pk):
+    if not request.user.es_admin:
+        raise PermissionDenied
+
+    item = ProductoDelMes.objects.filter(pk=pk).first()
+    if item:
+        item.delete()
+        messages.success(request, "Producto del mes eliminado.")
+    else:
+        messages.info(request, "Ese producto del mes ya había sido eliminado.")
+
+    return redirect('catalogo:destacados_mes_dashboard')

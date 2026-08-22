@@ -96,3 +96,60 @@ class ItemCarrusel(models.Model):
         if self.imagen:
             return self.imagen.url
         return None
+
+class ProductoDelMes(models.Model):
+    TIPO_CHOICES = [
+        ('PRODUCTO', 'Producto del catálogo'),
+        ('PERSONALIZADO', 'Contenido personalizado'),
+    ]
+    tipo = models.CharField(max_length=15, choices=TIPO_CHOICES, default='PRODUCTO')
+    producto = models.ForeignKey(
+        Producto, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='destacados_mes',
+        help_text="Solo si el tipo es 'Producto del catálogo'."
+    )
+    imagen = models.ImageField(
+        upload_to='catalogo/destacados_mes/', blank=True, null=True,
+        help_text="Solo si el tipo es 'Contenido personalizado'. Si es Producto, se usa la imagen del producto."
+    )
+    titulo = models.CharField(max_length=100, blank=True, help_text="Se usa el nombre del producto si está vacío.")
+    descripcion = models.CharField(max_length=200, blank=True, help_text="Descripción corta para la card.")
+    texto_boton = models.CharField(max_length=40, blank=True, default="Ver producto")
+    url_destino = models.CharField(
+        max_length=300, blank=True,
+        help_text="A dónde lleva el botón. Si está vacío y hay producto, va al detalle del producto."
+    )
+    orden = models.PositiveSmallIntegerField(default=0)
+    activo = models.BooleanField(default=True, help_text="Desactívalo para ocultarlo sin borrarlo.")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Producto del mes"
+        verbose_name_plural = "Productos del mes"
+        ordering = ['orden', '-fecha_creacion']
+
+    def __str__(self):
+        if self.tipo == 'PRODUCTO' and self.producto:
+            return f"Producto del mes: {self.producto.nombre}"
+        return f"Producto del mes: {self.titulo or '(sin título)'}"
+
+    def imagen_url(self):
+        if self.tipo == 'PRODUCTO' and self.producto and self.producto.imagen:
+            return self.producto.imagen.url
+        if self.imagen:
+            return self.imagen.url
+        return None
+
+    def titulo_mostrar(self):
+        if self.titulo:
+            return self.titulo
+        if self.tipo == 'PRODUCTO' and self.producto:
+            return self.producto.nombre
+        return ''
+
+    def url_mostrar(self):
+        if self.tipo == 'PRODUCTO' and self.producto:
+            return f"/catalogo/producto/{self.producto.id}/"
+        if self.url_destino:
+            return self.url_destino
+        return ''

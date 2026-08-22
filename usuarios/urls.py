@@ -11,5 +11,5 @@ urlpatterns = [
     path('favoritos/', views.favoritos_view, name='favoritos'),
     path('favoritos/<int:producto_id>/toggle/', views.toggle_favorito, name='toggle_favorito'),
     path('mi-cuenta/', views.mi_cuenta_view, name='mi_cuenta'),
-
+path('verificar-cambio/', views.verificar_cambio_view, name='verificar_cambio'),
 ]
