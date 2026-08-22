@@ -21,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@s_b_6u(5l&*o)kl%_^ms&ml@2%*@=vrn#@3n!ze_=y+)th^y-'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-@s_b_6u(5l&*o)kl%_^ms&ml@2%*@=vrn#@3n!ze_=y+)th^y-')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='mimada-plataforma.azurewebsites.net,localhost,127.0.0.1'
+).split(',')
 
 
 # Application definition
@@ -171,6 +174,10 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# Compatibilidad: django-cloudinary-storage aun revisa este atributo antiguo
+# en su comando collectstatic, aunque el proyecto ya use STORAGES.
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
