@@ -1,5 +1,6 @@
 from django.test import LiveServerTestCase
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from .models import Usuario
 
@@ -8,7 +9,13 @@ class LoginFrontTest(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.selenium = webdriver.Chrome()
+        opciones = Options()
+        opciones.add_argument('--headless=new')
+        opciones.add_argument('--no-sandbox')
+        opciones.add_argument('--disable-dev-shm-usage')
+        opciones.add_argument('--disable-gpu')
+        opciones.add_argument('--window-size=1280,1024')
+        cls.selenium = webdriver.Chrome(options=opciones)
 
     @classmethod
     def tearDownClass(cls):
