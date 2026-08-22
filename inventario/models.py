@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.validators import MinValueValidator
 
 class CategoriaInventario(models.Model):
     TIPO_CHOICES = [
@@ -34,8 +34,8 @@ class ItemInventario(models.Model):
     imagen = models.ImageField(upload_to='inventario/', blank=True, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-    stock_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)] )
+    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
