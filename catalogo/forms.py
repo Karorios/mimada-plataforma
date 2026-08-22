@@ -37,6 +37,11 @@ class ItemCarruselForm(forms.ModelForm):
             'orden': forms.NumberInput(attrs={'class': 'campo-input'}),
             'activo': forms.CheckboxInput(attrs={'class': 'campo-check'}),
         }
+
+
+
+
+
 class ProductoDelMesForm(forms.ModelForm):
     class Meta:
 
@@ -46,13 +51,7 @@ class ProductoDelMesForm(forms.ModelForm):
                     'titulo', 'descripcion', 'texto_boton', 'url_destino', 'orden', 'activo',
                 ]
 
-                def clean(self):
-                    datos = super().clean()
-                    tipo = datos.get('tipo')
-                    producto = datos.get('producto')
-                    if tipo == 'PRODUCTO' and not producto:
-                        self.add_error('producto', 'Selecciona un producto del catálogo.')
-                    return datos
+
 
                 widgets = {
                     'tipo': forms.Select(attrs={'class': 'campo-input', 'id': 'id_tipo'}),
@@ -68,3 +67,14 @@ class ProductoDelMesForm(forms.ModelForm):
                     'activo': forms.CheckboxInput(attrs={'class': 'campo-check'}),
 
                 }
+
+    def clean(self):
+        datos = super().clean()
+        tipo = datos.get('tipo')
+        producto = datos.get('producto')
+        if tipo == 'PRODUCTO' and not producto:
+            self.add_error('producto', 'Selecciona un producto del catálogo.')
+        return datos
+
+
+

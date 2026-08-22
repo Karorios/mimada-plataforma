@@ -16,7 +16,7 @@ class Pedido(models.Model):
     ]
     TIPO_ENTREGA = [
         ('DOMICILIO', 'Domicilio'),
-        ('SOACHA', 'Recoger en Soacha'),
+        ('SOACHA', 'Recoger en tienda ubicada en Soacha'),
         ('PLAZA', 'Recoger en Plaza de las Américas'),
     ]
 

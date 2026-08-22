@@ -29,8 +29,8 @@ class Producto(models.Model):
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='catalogo/productos/', blank=True, null=True)
-    disponible = models.BooleanField(default=True)
-    destacado = models.BooleanField(default=False)  # para "trabajos anteriormente hechos" / hero
+    disponible = models.BooleanField(default=True, blank=True)
+    destacado = models.BooleanField(default=False, blank=True)  # para "trabajos anteriormente hechos" / hero
 
     unidades_listas = models.PositiveIntegerField(
         default=0,

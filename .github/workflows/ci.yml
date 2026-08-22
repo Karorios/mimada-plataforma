@@ -46,5 +46,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: dummy
           CLOUDINARY_API_KEY: dummy
           CLOUDINARY_API_SECRET: dummy
+          EMAIL_HOST_USER: dummy@example.com
+          EMAIL_HOST_PASSWORD: dummy
         run: |
           python manage.py test
