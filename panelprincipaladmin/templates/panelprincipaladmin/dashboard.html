@@ -133,6 +133,13 @@
         .modulo-nota.en-desarrollo {
             color: #b8860b;
         }
+        @media (max-width: 768px) {
+            header { padding: 16px 20px; }
+            .contenedor { padding: 0 12px; margin: 16px auto; }
+            .seccion { padding: 16px; }
+            .seccion-titulo { flex-direction: column; align-items: flex-start; gap: 10px; }
+            table { min-width: 600px; }
+        }
     </style>
 </head>
 <body>
@@ -152,6 +159,7 @@
     <span class="nav-icon">🌸</span> Catálogo
 </a>
             {% if productos %}
+            <div style="overflow-x:auto;">
             <table>
                 <thead>
                     <tr>
@@ -188,6 +196,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
             {% else %}
             <p class="vacio">Todavía no hay productos cargados en el catálogo.</p>
             {% endif %}

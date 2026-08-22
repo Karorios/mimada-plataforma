@@ -2,7 +2,7 @@ from decimal import Decimal, ROUND_CEILING
 from django.db.models import Sum
 from inventario.models import ItemInventario
 from .models import HistorialVentas
-
+from datetime import timedelta
 # ---------------------------------------------------------------------------
 # Mapeo: cuántas unidades de cada flor trae un producto vendido.
 # ---------------------------------------------------------------------------
@@ -210,7 +210,7 @@ def alerta_stock_flor_fecha_comercial(nombre_flor, nombre_fecha_comercial, dias_
     if semanas_con_venta_de_flor(mapeo_contenido, minimo_semanas, historial=registros) < minimo_semanas:
         return {
             'nivel': 'SIN_DATOS',
-            'mensaje': f"Todavía no hay suficiente historial de ventas de {nombre_flor} para hacer una predicción confiable.",
+            'mensaje': f"Todavía no hay suficiente historial de ventas de {nombre_flor} para hacer una predicción confiable, pero es recomendable tener la menos 1",
             'necesidad': None, 'stock_actual': None, 'faltante': None,
         }
 
@@ -301,22 +301,74 @@ def resumen_rosas_y_cinta(nombre_fecha_comercial, dias_entrega_proveedor=3, hist
     return {'fecha_comercial': nombre_fecha_comercial, 'rosas': rosas, 'cinta': cinta}
 
 
-def necesidad_flor_semana_siguiente(mapeo_contenido, historial=None):
-    """Proyecta cuántas unidades de una flor se necesitarán la PRÓXIMA
-    semana normal (sin fecha comercial), usando Holt sobre toda la serie
-    semanal histórica."""
-    from .holt import holt_pronostico
-
+def necesidad_flor_semana_siguiente(mapeo_contenido, historial=None, semanas_promedio=8):
+    """Proyecta cuánto se necesitará la próxima semana normal.
+    Usa el promedio de las últimas `semanas_promedio` como nivel base
+    (robusto al ruido semana a semana), ajustado por un factor de
+    crecimiento de largo plazo (mitad más antigua vs. mitad más reciente
+    de todo el historial) — porque el negocio sí muestra crecimiento
+    real mes a mes, aunque semana a semana la demanda sea aleatoria."""
     registros = _obtener_historial(historial)
-    serie = serie_semanal_flor_normal(mapeo_contenido, historial=registros)
+    serie = serie_semanal_flor_completa(mapeo_contenido, historial=registros)
     valores = [total for _, total in serie]
 
-    if len(valores) < 2:
+    if len(valores) < 4:
         return None
 
-    resultado = holt_pronostico(valores)
-    return resultado['pronostico'].to_integral_value(rounding=ROUND_CEILING)
+    # nivel base: promedio de las semanas más recientes
+    ultimas = valores[-semanas_promedio:] if len(valores) >= semanas_promedio else valores
+    nivel_base = sum(ultimas) / Decimal(len(ultimas))
 
+    # factor de crecimiento de largo plazo: mitad antigua vs. mitad reciente
+    mitad = len(valores) // 2
+    primera_mitad = valores[:mitad]
+    segunda_mitad = valores[mitad:]
+    promedio_primera = sum(primera_mitad) / Decimal(len(primera_mitad))
+    promedio_segunda = sum(segunda_mitad) / Decimal(len(segunda_mitad))
+
+    if promedio_primera and promedio_primera != 0:
+        factor_crecimiento = promedio_segunda / promedio_primera
+        factor_crecimiento = max(Decimal('1.0'), min(Decimal('1.5'), factor_crecimiento))
+    else:
+        factor_crecimiento = Decimal('1.0')
+
+    proyeccion = nivel_base * factor_crecimiento
+    return proyeccion.to_integral_value(rounding=ROUND_CEILING)
+
+
+
+def serie_semanal_flor_completa(mapeo_contenido, historial=None):
+    """Serie semana a semana SIN huecos de calendario: genera cada semana
+    (sábado a sábado, paso de 7 días) desde la primera hasta la última
+    fecha_inicio del historial, excluyendo semanas de fecha comercial.
+    Si una semana no tiene NINGUNA venta registrada (de nada), igual
+    aparece en la serie con valor 0 — se conserva la línea de tiempo
+    real del negocio, sin saltos."""
+    registros = _obtener_historial(historial)
+    if not registros:
+        return []
+
+    todas_fechas = sorted(set(r.fecha_inicio for r in registros))
+    primera, ultima = todas_fechas[0], todas_fechas[-1]
+
+    fechas_comerciales = {r.fecha_inicio for r in registros if r.fecha_comercial not in (None, '')}
+
+    acumulado = {}
+    for r in registros:
+        if r.fecha_inicio in fechas_comerciales:
+            continue
+        factor = mapeo_contenido.get(r.producto.strip().lower())
+        if factor:
+            acumulado[r.fecha_inicio] = acumulado.get(r.fecha_inicio, Decimal('0')) + Decimal(r.cantidad) * Decimal(factor)
+
+    serie = []
+    actual = primera
+    while actual <= ultima:
+        if actual not in fechas_comerciales:
+            serie.append((actual, acumulado.get(actual, Decimal('0'))))
+        actual += timedelta(days=7)
+
+    return serie
 
 def alerta_stock_flor_semana_siguiente(nombre_flor, dias_entrega_proveedor=3,
                                          minimo_semanas=MINIMO_SEMANAS_DEFAULT,
