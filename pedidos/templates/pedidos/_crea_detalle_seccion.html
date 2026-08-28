@@ -140,7 +140,7 @@
                 {% for extra in adicionales %}
 
                 <label class="checkbox-opcion checkbox-imagen">
-                    <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:'0u' }}">
+                    <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:0|floatformat:'0u' }}">
                     {% if extra.imagen %}
                         <img src="{{ extra.imagen.url }}" alt="{{ extra.nombre }}">
                     {% endif %}
@@ -155,7 +155,7 @@
             <h3>Peluche (opcional)</h3>
             <div class="opciones-lista opciones-imagenes" id="opciones-peluche">
                 {% for peluche in peluches %}
-                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ peluche.precio|default:0 }}" data-id="{{ peluche.id }}">
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ peluche.precio|default:0|floatformat:'0u' }}" data-id="{{ peluche.id }}">
                     {% if peluche.imagen %}
                         <img src="{{ peluche.imagen.url }}" alt="{{ peluche.nombre }}">
                     {% endif %}

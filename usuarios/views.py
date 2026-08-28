@@ -145,7 +145,7 @@ def login_admin_view(request):
 
         if user is not None and user.is_staff:
             login(request, user)
-            return redirect('finanzas:dashboard')
+            return redirect('inventario:dashboard')
         else:
             messages.error(
                 request,
