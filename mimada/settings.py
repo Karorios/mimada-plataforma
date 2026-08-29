@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'pedidos',
     'finanzas',
     'inventario',
-    'panelprincipaladmin',
     'pedidosadmin',
     'asistente_ia',
 ]
