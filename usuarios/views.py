@@ -134,7 +134,7 @@ def logout_view(request):
     carrito_actual = request.session.get('carrito', [])
     logout(request)
     request.session['carrito'] = carrito_actual
-    return redirect('usuarios:login')
+    return redirect('home')
 
 def login_admin_view(request):
     if request.method == 'POST':
