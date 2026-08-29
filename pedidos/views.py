@@ -51,7 +51,7 @@ def crear_detalle(request):
     def items_de(nombre_categoria):
         try:
             categoria = CategoriaInventario.objects.get(nombre=nombre_categoria)
-            return ItemInventario.objects.filter(categoria=categoria)
+            return ItemInventario.objects.filter(categoria=categoria, stock_actual__gt=0)
         except CategoriaInventario.DoesNotExist:
             return ItemInventario.objects.none()
 
