@@ -1,15 +1,12 @@
 name: CI
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
     services:
       mysql:
         image: mysql:8.0
@@ -23,19 +20,32 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
       - name: Instalar dependencias
         run: |
           pip install -r requirements.txt
-
+      - name: Instalar Google Chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: Recolectar archivos estaticos
+        env:
+          DB_NAME: test_mimada
+          DB_USER: root
+          DB_PASSWORD: root
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          CLOUDINARY_CLOUD_NAME: dummy
+          CLOUDINARY_API_KEY: dummy
+          CLOUDINARY_API_SECRET: dummy
+          EMAIL_HOST_USER: dummy@example.com
+          EMAIL_HOST_PASSWORD: dummy
+          SECRET_KEY: clave-temporal-solo-para-ci
+        run: |
+          python manage.py collectstatic --noinput
       - name: Correr migraciones y pruebas
         env:
           DB_NAME: test_mimada
@@ -48,5 +58,6 @@ jobs:
           CLOUDINARY_API_SECRET: dummy
           EMAIL_HOST_USER: dummy@example.com
           EMAIL_HOST_PASSWORD: dummy
+          SECRET_KEY: clave-temporal-solo-para-ci
         run: |
           python manage.py test
