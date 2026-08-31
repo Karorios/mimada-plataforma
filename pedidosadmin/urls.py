@@ -7,4 +7,5 @@ urlpatterns = [
     path('', views.lista_pedidos, name='dashboard'),
     path('<int:pk>/', views.detalle_pedido, name='detalle'),
     path('<int:pk>/accion/', views.accion_pedido, name='accion'),
+path('registrar-presencial/', views.registrar_venta_presencial, name='registrar_presencial'),
 ]

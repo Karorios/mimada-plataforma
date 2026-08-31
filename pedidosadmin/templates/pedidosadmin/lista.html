@@ -172,6 +172,31 @@
             .cards, .stats-row { grid-template-columns: 1fr !important; }
             table { min-width: 600px; }
         }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .btn-vitrina {
+            background: #c2185b; color: white; border: none; border-radius: 8px;
+            padding: 10px 18px; font-size: 13px; font-weight: 600;
+            text-decoration: none; white-space: nowrap;
+        }
+        .form-input {
+            width: 100%; padding: 10px 12px; border: 1px solid #f0c0d4;
+            border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 2px;
+        }
+        .campo-form { margin-bottom: 1rem; }
+        .campo-form label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
+        .campo-form .ayuda { font-size: 11px; color: #999; margin-top: 3px; }
+        .separador-o { text-align: center; color: #bbb; font-size: 12px; margin: 4px 0 14px; }
+        .errores-form {
+            background: #ffebee; color: #c62828; border: 1px solid #ffcdd2;
+            border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -220,8 +245,11 @@
 
     <main class="main">
         <div class="main-header">
-            <h2>Gestión de Pedidos</h2>
-            <p>Revisa, aprueba y da seguimiento a los pedidos de tus clientas.</p>
+            <div>
+                <h2>Gestión de Pedidos</h2>
+                <p>Revisa, aprueba y da seguimiento a los pedidos de tus clientas.</p>
+            </div>
+            <a href="?tab={{ tab_activo }}&q={{ query }}&nueva=1" class="btn-vitrina">+ Venta de vitrina</a>
         </div>
 
         {% if messages %}
@@ -273,6 +301,7 @@
                 {% empty %}
                 <tr><td colspan="7" style="text-align:center; color:#999; padding:2rem;">No hay pedidos todavía.</td></tr>
                 {% endfor %}
+
                 {% if pedido_detalle %}
                         <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}" class="overlay abierto"></a>
 
@@ -383,6 +412,69 @@
                                     {% endif %}
                                     {% endwith %}
                                 </div>
+                            </div>
+                        </aside>
+                {% endif %}
+
+                {% if mostrar_form_presencial %}
+                        <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}" class="overlay abierto"></a>
+
+                        <aside class="panel-detalle abierto">
+                            <a href="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}" class="panel-close">✕</a>
+                            <div class="panel-card">
+                                <h2 style="font-size:18px; color:#333; margin-bottom: 1rem;">Registrar venta de vitrina</h2>
+
+                                {% if form_presencial.non_field_errors %}
+                                <div class="errores-form">
+                                    {% for error in form_presencial.non_field_errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <form method="post" action="{% url 'pedidosadmin:registrar_presencial' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="?tab={{ tab_activo }}&q={{ query }}&page={{ page_obj.number }}">
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.producto.label }}</label>
+                                        {{ form_presencial.producto }}
+                                    </div>
+
+                                    <div class="separador-o">— o —</div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.producto_nombre_libre.label }}</label>
+                                        {{ form_presencial.producto_nombre_libre }}
+                                        <div class="ayuda">{{ form_presencial.producto_nombre_libre.help_text }}</div>
+                                    </div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.cantidad.label }}</label>
+                                        {{ form_presencial.cantidad }}
+                                    </div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.precio_unitario.label }}</label>
+                                        {{ form_presencial.precio_unitario }}
+                                        <div class="ayuda">{{ form_presencial.precio_unitario.help_text }}</div>
+                                    </div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.fecha_venta.label }}</label>
+                                        {{ form_presencial.fecha_venta }}
+                                    </div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.nombre_cliente.label }}</label>
+                                        {{ form_presencial.nombre_cliente }}
+                                    </div>
+
+                                    <div class="campo-form">
+                                        <label>{{ form_presencial.telefono_cliente.label }}</label>
+                                        {{ form_presencial.telefono_cliente }}
+                                    </div>
+
+                                    <button type="submit" class="btn-primary-full">Registrar venta</button>
+                                </form>
                             </div>
                         </aside>
                 {% endif %}

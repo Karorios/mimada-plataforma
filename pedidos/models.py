@@ -18,6 +18,7 @@ class Pedido(models.Model):
         ('DOMICILIO', 'Domicilio'),
         ('SOACHA', 'Recoger en tienda ubicada en Soacha'),
         ('PLAZA', 'Recoger en Plaza de las Américas'),
+        ('MOSTRADOR', 'Venta presencial en mostrador'),
     ]
 
     cliente = models.ForeignKey(
