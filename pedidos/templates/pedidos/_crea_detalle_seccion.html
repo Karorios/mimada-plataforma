@@ -190,7 +190,7 @@
 </section>
 {% load humanize %}
 <style>
-   s
+
 .seccion-crea-detalle { max-width: 1100px; margin: 0 auto 3rem; padding: 0 1.5rem; }
 .opcion-imagen { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 90px; text-align: center; }
 .opcion-imagen img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
@@ -203,28 +203,95 @@
 .config-header h2 { color: #c2185b; font-size: 1.6rem; margin-bottom: 6px; }
 .config-header .subtitulo { color: #777; font-size: 14px; max-width: 520px; margin: 0 auto; }
 .config-wrapper { max-width: 700px; margin: 1.5rem auto 3rem; padding: 0 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; box-sizing: border-box; }
-.config-card { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; }
+.config-card { background: white; border: 1px solid #f0c0d4; border-radius: 12px; padding: 1.2rem 1.4rem; box-sizing: border-box; }
 .config-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 1rem; }
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; flex-shrink: 0; }
 .swatch.activo { border-color: #e91e8c; box-shadow: 0 0 0 2px #fce4ec; }
 .seleccionados { font-size: 12px; color: #999; margin-top: 8px; }
 .opciones-lista { display: flex; flex-wrap: wrap; gap: 8px; }
-.opcion-btn { background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #666; cursor: pointer; }
+.opcion-btn { background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #666; cursor: pointer; transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease; }
+.opcion-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(233,30,140,0.15); }
 .opcion-btn.activo { background: #e91e8c; color: white; border-color: #e91e8c; }
 .checkbox-opcion { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .checkbox-opcion.checkbox-imagen { flex-direction: column; width: 90px; text-align: center; padding: 10px 8px; }
-.checkbox-opcion.checkbox-imagen img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }.resumen-card { background: #fdf0f5; }
+.checkbox-opcion.checkbox-imagen img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
+.resumen-card { background: #fdf0f5; }
 .resumen-linea { display: flex; justify-content: space-between; font-size: 13px; color: #666; padding: 6px 0; border-bottom: 1px dashed #f0c0d4; }
 .resumen-linea.total { border-bottom: none; font-weight: 700; color: #c2185b; font-size: 15px; margin-top: 6px; }
-.btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: pointer; }
-.btn-confirmar:hover { background: #c2185b; }
+.btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: pointer; transition: background-color .15s ease, transform .15s ease; }
+.btn-confirmar:hover { background: #c2185b; transform: translateY(-1px); }
 .nota-login { text-align: center; font-size: 11px; color: #aaa; margin-top: 6px; }
 .vacio-inline { font-size: 12px; color: #bbb; }
+
+/* --- Animación de aparición al hacer scroll --- */
+.config-card, .selector-flores {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .6s ease, transform .6s ease;
+}
+.config-card.visible, .selector-flores.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- Responsive: tablet --- */
+@media (max-width: 768px) {
+    .seccion-crea-detalle { padding: 0 1rem; }
+    .config-wrapper, .selector-flores { max-width: 100%; }
+}
+
+/* --- Responsive: celular --- */
+@media (max-width: 600px) {
+    .config-header { padding: 1.5rem 0.5rem 0.5rem; }
+    .config-header h2 { font-size: 1.3rem; }
+    .config-header .subtitulo { font-size: 13px; }
+
+    .selector-flores { margin: 1rem auto 0; padding: 1rem; }
+    .config-wrapper { margin: 1rem auto 2rem; padding: 0 1rem; gap: 1rem; }
+    .config-card { padding: 1rem; border-radius: 10px; }
+    .config-card h3 { font-size: 12px; }
+
+    .opciones-lista { gap: 6px; }
+    .opcion-btn { padding: 8px 10px; font-size: 12.5px; flex: 1 1 calc(50% - 6px); }
+    .opciones-cantidad .opcion-btn { min-width: 0; }
+
+    .opcion-imagen, .checkbox-opcion.checkbox-imagen { width: calc(33.333% - 6px); }
+    .opcion-imagen img, .checkbox-opcion.checkbox-imagen img { width: 100%; height: 64px; }
+
+    .swatch { width: 30px; height: 30px; }
+
+    .btn-confirmar { padding: 14px; font-size: 15px; }
+}
+
+@media (max-width: 380px) {
+    .opcion-imagen, .checkbox-opcion.checkbox-imagen { width: calc(50% - 4px); }
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Animación de aparición al hacer scroll ---
+    (function initAnimacionAparicion() {
+        const elementosAnimados = document.querySelectorAll('.config-card, .selector-flores');
+
+        if (!('IntersectionObserver' in window)) {
+            elementosAnimados.forEach(el => el.classList.add('visible'));
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), index * 60);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+        elementosAnimados.forEach(el => observer.observe(el));
+    })();
 
     let cantidadRosas = 0;
     let precioRosas = 0;
@@ -290,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function actualizarModoArmado() {
         if (esModoManual()) {
             cardModoArmado.style.display = 'block';
+            cardModoArmado.classList.add('visible');
         } else {
             cardModoArmado.style.display = 'none';
             modoArmado = null;
@@ -406,6 +474,9 @@ document.addEventListener('DOMContentLoaded', function () {
         cardGirasoles.style.display = incluyeGirasoles ? 'block' : 'none';
         cardLirios.style.display = incluyeLirios ? 'block' : 'none';
         cardColorLirio.style.display = incluyeLirios ? 'block' : 'none';
+        [cardRosas, cardColorRosa, cardGirasoles, cardLirios, cardColorLirio].forEach(card => {
+            if (card.style.display !== 'none') card.classList.add('visible');
+        });
 
         avisoFlores.style.display = (incluyeRosas || incluyeGirasoles || incluyeLirios) ? 'none' : 'block';
 

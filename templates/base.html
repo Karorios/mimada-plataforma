@@ -144,10 +144,56 @@
             background: white;
             border-top: 1px solid #f0c0d4;
             text-align: center;
-            padding: 1.2rem 1rem;
-            font-size: 11px;
-            color: #aaa;
+            padding: 2.2rem 1rem;
+            margin-top: 0;
+        }
+        .footer-marca {
+            font-size: 20px;
+            font-weight: 700;
+            color: #c2185b;
+            margin-bottom: 10px;
+        }
+        .footer-linea {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .footer-copy {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        /* TICKER DE CONFIANZA */
+        .ticker-confianza {
+            background: linear-gradient(90deg, #fce4ec, #fdf0f5, #fce4ec);
+            border-top: 1px solid #f0c0d4;
+            overflow: hidden;
+            padding: 14px 0;
             margin-top: 2rem;
+        }
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            gap: 2.5rem;
+            animation: desplazarTicker 22s linear infinite;
+        }
+        .ticker-confianza:hover .ticker-track {
+            animation-play-state: paused;
+        }
+        .ticker-item {
+            font-size: 14px;
+            font-weight: 600;
+            color: #c2185b;
+            white-space: nowrap;
+        }
+        .ticker-sep {
+            color: #f0a0c0;
+            font-weight: 400;
+        }
+        @keyframes desplazarTicker {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
         }
 
                 /* MENÚ HAMBURGUESA (mobile) */
@@ -334,9 +380,38 @@
     {% block content %}{% endblock %}
 </main>
 
+<div class="ticker-confianza">
+    <div class="ticker-track">
+        <span class="ticker-item">🏅 Excelente calidad</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🎧 Asesoría personalizada</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🛒 Compra fácil y segura</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🚚 Envíos en Bogotá y Soacha</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">📷 @mimada.detalles</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🏅 Excelente calidad</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🎧 Asesoría personalizada</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🛒 Compra fácil y segura</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">🚚 Envíos en Bogotá y Soacha</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-item">📷 @mimada.detalles</span>
+        <span class="ticker-sep">|</span>
+    </div>
+</div>
+
 <footer>
-    © 2026 Mimada. Artesanía Colombiana.<br>
-    📱 Contacto: 323 888 3587 &nbsp;|&nbsp; 📷 Instagram: @mimada.detalles
+    <div class="footer-contacto">
+        <p class="footer-marca">Mimada 🌸</p>
+        <p class="footer-linea">📱 Contacto: 323 888 3587</p>
+        <p class="footer-linea">📷 Instagram: @mimada.detalles</p>
+        <p class="footer-copy">© 2026 Mimada. Artesanía Colombiana.</p>
+    </div>
 </footer>
 {% block extra_scripts %}{% endblock %}
 <script>

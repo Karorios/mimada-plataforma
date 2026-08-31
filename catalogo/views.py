@@ -17,7 +17,7 @@ def inicio(request):
     def items_de(nombre_categoria):
         try:
             cat = CategoriaInventario.objects.get(nombre=nombre_categoria)
-            return ItemInventario.objects.filter(categoria=cat)
+            return ItemInventario.objects.filter(categoria=cat, stock_actual__gt=0)
         except CategoriaInventario.DoesNotExist:
             return ItemInventario.objects.none()
 
