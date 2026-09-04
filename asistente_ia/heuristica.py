@@ -2,7 +2,8 @@ from decimal import Decimal, ROUND_CEILING
 from django.db.models import Sum
 from inventario.models import ItemInventario
 from .models import HistorialVentas
-from datetime import timedelta
+from datetime import timedelta, date
+
 # ---------------------------------------------------------------------------
 # Mapeo: cuántas unidades de cada flor trae un producto vendido.
 # ---------------------------------------------------------------------------
@@ -41,6 +42,14 @@ CATEGORIA_INVENTARIO_POR_FLOR = {
 METROS_CINTA_POR_ROSA = Decimal('1.10')
 
 MINIMO_SEMANAS_DEFAULT = 5
+
+def inicio_semana(fecha):
+    """Devuelve el sábado (fecha_inicio) de la semana a la que pertenece
+    `fecha`, consistente con cómo están armadas las semanas en
+    HistorialVentas (sábado a sábado). Función compartida — pedidosadmin
+    también la usa al registrar ventas presenciales."""
+    dias_desde_sabado = (fecha.weekday() - 5) % 7
+    return fecha - timedelta(days=dias_desde_sabado)
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +358,9 @@ def serie_semanal_flor_completa(mapeo_contenido, historial=None):
         return []
 
     todas_fechas = sorted(set(r.fecha_inicio for r in registros))
-    primera, ultima = todas_fechas[0], todas_fechas[-1]
+    primera = todas_fechas[0]
+    semana_actual = inicio_semana(date.today())
+    ultima = max(todas_fechas[-1], semana_actual)
 
     fechas_comerciales = {r.fecha_inicio for r in registros if r.fecha_comercial not in (None, '')}
 

@@ -16,7 +16,7 @@ FLORES = [
     {'clave': 'lirios', 'nombre_display': 'Lirios', 'mapeo': CONTENIDO_LIRIOS},
 ]
 
-SEMANAS_A_MOSTRAR = 7
+SEMANAS_A_MOSTRAR = 8
 
 
 @login_required

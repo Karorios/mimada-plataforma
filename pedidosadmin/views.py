@@ -10,7 +10,7 @@ from django.db.models import Q
 from pedidos.models import Pedido, DetallePedido
 from asistente_ia.models import HistorialVentas
 from asistente_ia.fechas_comerciales import detectar_fecha_comercial
-
+from asistente_ia.heuristica import inicio_semana
 from .forms import VentaPresencialForm
 
 Usuario = get_user_model()
@@ -129,12 +129,7 @@ def obtener_cliente_mostrador():
     return cliente
 
 
-def inicio_semana(fecha):
-    """Devuelve el sábado (fecha_inicio) de la semana a la que pertenece
-    `fecha`, consistente con cómo están armadas las semanas en
-    HistorialVentas (sábado a sábado)."""
-    dias_desde_sabado = (fecha.weekday() - 5) % 7
-    return fecha - timedelta(days=dias_desde_sabado)
+
 
 
 def registrar_en_historial(nombre_producto, cantidad, fecha_venta):
