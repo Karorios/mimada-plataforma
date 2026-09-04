@@ -193,7 +193,7 @@
 
 .seccion-crea-detalle { max-width: 1100px; margin: 0 auto 3rem; padding: 0 1.5rem; }
 .opcion-imagen { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 90px; text-align: center; }
-.opcion-imagen img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+.opcion-imagen img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #fdf0f5; }
 .precio-opcion { font-size: 11px; color: #e91e8c; font-weight: 600; display: block; }
 .opcion-btn.activo .precio-opcion { color: white; }
 .opciones-cantidad .opcion-btn { min-width: 90px; text-align: center; line-height: 1.4; }
@@ -215,8 +215,7 @@
 .opcion-btn.activo { background: #e91e8c; color: white; border-color: #e91e8c; }
 .checkbox-opcion { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fdf0f5; border: 1px solid #f0c0d4; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .checkbox-opcion.checkbox-imagen { flex-direction: column; width: 90px; text-align: center; padding: 10px 8px; }
-.checkbox-opcion.checkbox-imagen img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
-.resumen-card { background: #fdf0f5; }
+.checkbox-opcion.checkbox-imagen img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: #fdf0f5; }.resumen-card { background: #fdf0f5; }
 .resumen-linea { display: flex; justify-content: space-between; font-size: 13px; color: #666; padding: 6px 0; border-bottom: 1px dashed #f0c0d4; }
 .resumen-linea.total { border-bottom: none; font-weight: 700; color: #c2185b; font-size: 15px; margin-top: 6px; }
 .btn-confirmar { width: 100%; background: #e91e8c; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; margin-top: 1rem; cursor: pointer; transition: background-color .15s ease, transform .15s ease; }
