@@ -37,7 +37,7 @@ PUNTOS_RECOGIDA = {
     },
 }
 
-VALOR_DOMICILIO = 8000
+VALOR_DOMICILIO = 10000
 
 
 def calcular_domicilio(tipo_entrega):

@@ -1,3 +1,10 @@
+{% load l10n %}
+
+
+
+
+
+
 <section class="seccion-crea-detalle" id="crea-tu-detalle">
 
     <div class="config-header">
@@ -11,6 +18,7 @@
         {% if detalle_inicial %}
         {{ detalle_inicial|json_script:"detalle-inicial-data" }}
         {% endif %}
+
 
     </form>
 
@@ -76,7 +84,7 @@
             <p class="vacio-inline">Puedes elegir hasta la misma cantidad de rosas que seleccionaste.</p>
             <div class="swatches" id="swatches-cintas">
                 {% for cinta in cintas %}
-                    <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+                    <button type="button" class="swatch" data-precio="{{ cinta.precio|default:0 }}" data-id="{{ cinta.id|unlocalize }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
                 {% endfor %}
@@ -89,7 +97,7 @@
             <p class="vacio-inline">Puedes elegir hasta la misma cantidad de lirios que seleccionaste.</p>
             <div class="swatches" id="swatches-lirios">
                 {% for cinta in cintas %}
-                <button type="button" class="swatch" data-precio="{{ cinta.precio|default:'0u' }}" data-id="{{ cinta.id }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
+                <button type="button" class="swatch" data-precio="{{ cinta.precio|default:'0u' }}" data-id="{{ cinta.id|unlocalize }}" style="background-color: {{ cinta.color|default:'#eee' }};" title="{{ cinta.nombre }}"></button>
                 {% empty %}
                 <p class="vacio-inline">Aún no hay colores de cinta cargados.</p>
                 {% endfor %}
@@ -103,7 +111,7 @@
             <div class="opciones-lista opciones-imagenes" id="opciones-papel">
 
                 {% for papel in papeles %}
-                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id }}" data-stock="{{ papel.stock_actual|default:0 }}">
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ papel.precio|default:0 }}" data-id="{{ papel.id|unlocalize }}" data-stock="{{ papel.stock_actual|default:0 }}">
                     {% if papel.imagen %}
                         <img src="{{ papel.imagen.url }}" alt="{{ papel.nombre }}">
                     {% endif %}
@@ -140,7 +148,7 @@
                 {% for extra in adicionales %}
 
                 <label class="checkbox-opcion checkbox-imagen">
-                    <input type="checkbox" value="{{ extra.id }}" data-precio="{{ extra.precio|default:0|floatformat:'0u' }}">
+                    <input type="checkbox" value="{{ extra.id|unlocalize }}" data-precio="{{ extra.precio|default:0|floatformat:'0u' }}">
                     {% if extra.imagen %}
                         <img src="{{ extra.imagen.url }}" alt="{{ extra.nombre }}">
                     {% endif %}
@@ -155,7 +163,7 @@
             <h3>Peluche (opcional)</h3>
             <div class="opciones-lista opciones-imagenes" id="opciones-peluche">
                 {% for peluche in peluches %}
-                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ peluche.precio|default:0|floatformat:'0u' }}" data-id="{{ peluche.id }}">
+                <button type="button" class="opcion-btn opcion-imagen" data-precio="{{ peluche.precio|default:0|floatformat:'0u' }}" data-id="{{ peluche.id|unlocalize }}">
                     {% if peluche.imagen %}
                         <img src="{{ peluche.imagen.url }}" alt="{{ peluche.nombre }}">
                     {% endif %}

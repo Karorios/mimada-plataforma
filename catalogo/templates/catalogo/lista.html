@@ -303,30 +303,31 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
-    document.querySelectorAll('.tarjeta-producto').forEach(tarjeta => {
-    const input = tarjeta.querySelector('.cantidad-valor');
-    const btnComprar = tarjeta.querySelector('.btn-comprar');
-    if (!input || !btnComprar) return;
 
-    tarjeta.querySelectorAll('.btn-cantidad').forEach(boton => {
-        boton.addEventListener('click', () => {
-            let valor = parseInt(input.value, 10) || 1;
-            if (boton.dataset.accion === 'sumar') {
-                valor += 1;
-            } else if (valor > 1) {
-                valor -= 1;
-            }
-            input.value = valor;
+    tarjetas.forEach(tarjeta => {
+        const input = tarjeta.querySelector('.cantidad-valor');
+        const form = tarjeta.querySelector('.form-agregar-carrito');
+        const hiddenCantidad = form ? form.querySelector('input[name="cantidad"]') : null;
+        if (!input) return;
+
+        tarjeta.querySelectorAll('.btn-cantidad').forEach(boton => {
+            boton.addEventListener('click', () => {
+                let valor = parseInt(input.value, 10) || 1;
+                if (boton.dataset.accion === 'sumar') {
+                    valor += 1;
+                } else if (valor > 1) {
+                    valor -= 1;
+                }
+                input.value = valor;
+            });
         });
-    });
 
-    btnComprar.addEventListener('click', (e) => {
-        e.preventDefault();
-        const cantidad = parseInt(input.value, 10) || 1;
-        const base = btnComprar.dataset.baseHref;
-        window.location.href = `${base}?cantidad=${cantidad}`;
+        if (form && hiddenCantidad) {
+            form.addEventListener('submit', () => {
+                hiddenCantidad.value = parseInt(input.value, 10) || 1;
+            });
+        }
     });
-});
 });
 </script>
 {% endblock %}
